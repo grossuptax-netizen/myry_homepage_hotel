@@ -8,7 +8,8 @@
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" />
   <style>
     /* ===== 색상 변수 ===== */
@@ -16,9 +17,9 @@
       --plum: #3D2B56;        /* 메인: 딥 플럼 */
       --plum-dark: #2C1E40;
       --plum-light: #5A4178;
-      --gold: #C9A24B;        /* 포인트: 샴페인 골드 */
-      --gold-dark: #B08D38;
-      --gold-light: #DCC27E;
+      --gold: #E0B872;        /* 포인트: 샴페인 골드 (밝고 화사한 톤) */
+      --gold-dark: #C9A24B;
+      --gold-light: #EFD4A0;
       --lavender: #EDE8F0;    /* 보조: 연한 라벤더 그레이 */
       --ivory: #FAF8F5;       /* 배경: 아이보리 */
       --white: #FFFFFF;
@@ -32,7 +33,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html { scroll-behavior: smooth; }
     body {
-      font-family: 'Noto Sans KR', sans-serif;
+      font-family: Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
       color: var(--text);
       background: var(--ivory);
       line-height: 1.7;
@@ -82,16 +83,16 @@
       cursor: pointer;
       border: none;
       transition: all 0.3s ease;
-      font-family: 'Noto Sans KR', sans-serif;
+      font-family: Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     }
     .btn-gold {
       background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
       color: #fff;
-      box-shadow: 0 8px 22px rgba(201, 162, 75, 0.35);
+      box-shadow: 0 8px 22px rgba(224,184,114, 0.35);
     }
     .btn-gold:hover {
       transform: translateY(-3px);
-      box-shadow: 0 14px 30px rgba(201, 162, 75, 0.5);
+      box-shadow: 0 14px 30px rgba(224,184,114, 0.5);
     }
     .btn-kakao {
       background: #FEE500;
@@ -151,9 +152,9 @@
       color: #fff; padding: 11px 22px; border-radius: 50px;
       font-weight: 700; font-size: 0.95rem;
       transition: all 0.3s ease;
-      box-shadow: 0 6px 18px rgba(201,162,75,0.35);
+      box-shadow: 0 6px 18px rgba(224,184,114,0.35);
     }
-    .nav-tel:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(201,162,75,0.5); }
+    .nav-tel:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(224,184,114,0.5); }
 
     .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
 
@@ -182,7 +183,7 @@
     .hero-content { max-width: 760px; color: #fff; }
     .hero-eyebrow {
       display: inline-flex; align-items: center; gap: 8px;
-      border: 1px solid rgba(201,162,75,0.6);
+      border: 1px solid rgba(224,184,114,0.6);
       color: var(--gold-light);
       padding: 7px 18px; border-radius: 50px;
       font-size: 0.85rem; letter-spacing: 1px; font-weight: 500;
@@ -244,7 +245,7 @@
       background: linear-gradient(135deg, var(--lavender), #fff);
       display: flex; align-items: center; justify-content: center;
       font-size: 1.6rem; color: var(--plum); margin-bottom: 22px;
-      border: 1px solid rgba(201,162,75,0.25);
+      border: 1px solid rgba(224,184,114,0.25);
       transition: all 0.35s ease;
     }
     .service-card:hover .service-icon {
@@ -270,7 +271,7 @@
       background: var(--plum); color: var(--gold-light);
       display: flex; align-items: center; justify-content: center; font-size: 1.05rem;
     }
-    .benefit-item h4 { font-size: 1.08rem; color: var(--plum); margin-bottom: 4px; font-family: 'Noto Sans KR'; font-weight: 700; }
+    .benefit-item h4 { font-size: 1.08rem; color: var(--plum); margin-bottom: 4px; font-family: Pretendard, sans-serif; font-weight: 700; }
     .benefit-item p { font-size: 0.93rem; color: var(--text-muted); font-weight: 300; }
     .benefits-visual {
       background: var(--plum); border-radius: 20px; padding: 46px 40px; color: #fff;
@@ -278,7 +279,7 @@
     }
     .benefits-visual::after {
       content: '\f3a5'; font-family: 'Font Awesome 6 Free'; font-weight: 900;
-      position: absolute; right: -20px; bottom: -25px; font-size: 9rem; color: rgba(201,162,75,0.12);
+      position: absolute; right: -20px; bottom: -25px; font-size: 9rem; color: rgba(224,184,114,0.12);
     }
     .benefits-visual .vtag { color: var(--gold-light); font-weight: 700; letter-spacing: 1px; font-size: 0.85rem; }
     .benefits-visual h3 { font-size: 1.5rem; margin: 14px 0 20px; line-height: 1.45; }
@@ -307,7 +308,7 @@
     .review-author .info .who { font-weight: 700; color: var(--plum); font-size: 0.98rem; }
     .review-author .info .biz {
       display: inline-block; margin-top: 3px; font-size: 0.78rem; font-weight: 500;
-      color: var(--gold-dark); background: rgba(201,162,75,0.12);
+      color: var(--gold-dark); background: rgba(224,184,114,0.12);
       padding: 2px 10px; border-radius: 50px;
     }
 
@@ -315,7 +316,7 @@
     .contact { background: var(--plum); color: #fff; position: relative; overflow: hidden; }
     .contact::before {
       content: ''; position: absolute; top: -120px; right: -120px; width: 360px; height: 360px;
-      border-radius: 50%; background: radial-gradient(circle, rgba(201,162,75,0.18), transparent 70%);
+      border-radius: 50%; background: radial-gradient(circle, rgba(224,184,114,0.18), transparent 70%);
     }
     .contact-wrap { display: grid; grid-template-columns: 1fr 1.1fr; gap: 56px; position: relative; z-index: 2; }
     .contact-info .section-tag { color: var(--gold-light); }
@@ -347,7 +348,7 @@
     .form-group label { display: block; font-size: 0.9rem; font-weight: 500; color: var(--plum); margin-bottom: 7px; }
     .form-group input, .form-group textarea {
       width: 100%; padding: 13px 16px; border: 1.5px solid var(--lavender); border-radius: 10px;
-      font-size: 0.98rem; font-family: 'Noto Sans KR'; transition: border 0.25s; background: var(--ivory);
+      font-size: 0.98rem; font-family: Pretendard, sans-serif; transition: border 0.25s; background: var(--ivory);
     }
     .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--gold); background: #fff; }
     .form-group textarea { resize: vertical; min-height: 100px; }
@@ -363,14 +364,28 @@
     .footer-info strong { color: rgba(255,255,255,0.92); font-weight: 500; margin-right: 8px; }
     .footer-bottom { padding-top: 26px; text-align: center; font-size: 0.83rem; font-weight: 300; color: rgba(255,255,255,0.45); }
 
-    /* ===== 플로팅 카카오 버튼 ===== */
-    .float-kakao {
-      position: fixed; right: 24px; bottom: 24px; z-index: 900;
-      width: 60px; height: 60px; border-radius: 50%; background: #FEE500;
-      display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: #3C1E1E;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.25); transition: all 0.3s; cursor: pointer;
+    /* ===== 우측 세로 퀵 메뉴 (플로팅) ===== */
+    .quick-menu {
+      position: fixed; right: 22px; top: 50%; transform: translateY(-50%);
+      z-index: 950; display: flex; flex-direction: column; gap: 12px;
     }
-    .float-kakao:hover { transform: scale(1.1) translateY(-3px); }
+    .quick-btn {
+      width: 60px; height: 60px; border-radius: 16px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 3px; cursor: pointer; transition: all 0.3s ease;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.18); text-decoration: none;
+    }
+    .quick-btn i { font-size: 1.45rem; line-height: 1; }
+    .quick-btn .q-label { font-size: 0.62rem; font-weight: 700; line-height: 1; }
+    .quick-btn:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0,0,0,0.28); }
+    .quick-kakao { background: #FEE500; color: #3C1E1E; }
+    .quick-youtube { background: #FF0000; color: #FFFFFF; }
+    @media (max-width: 760px) {
+      .quick-menu { right: 14px; gap: 10px; }
+      .quick-btn { width: 54px; height: 54px; border-radius: 14px; }
+      .quick-btn i { font-size: 1.3rem; }
+      .quick-btn .q-label { font-size: 0.58rem; }
+    }
 
     /* ===== fade-in 애니메이션 ===== */
     .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease, transform 0.8s ease; }
@@ -413,7 +428,7 @@
         <a href="#reviews" class="menu-link">고객후기</a>
         <a href="#contact" class="menu-link">상담문의</a>
       </nav>
-      <a href="tel:0212345678" class="nav-tel"><i class="fas fa-phone-alt"></i> 02-1234-5678</a>
+      <a href="#contact" class="nav-tel"><i class="fas fa-comments"></i> 무료 세무 상담받기</a>
       <button class="hamburger" id="hamburger" aria-label="메뉴 열기"><i class="fas fa-bars"></i></button>
     </div>
   </header>
@@ -426,7 +441,7 @@
     <a href="#benefits">강점</a>
     <a href="#reviews">고객후기</a>
     <a href="#contact">상담문의</a>
-    <a href="tel:0212345678" class="btn btn-gold"><i class="fas fa-phone-alt"></i> 전화 상담받기</a>
+    <a href="#contact" class="btn btn-gold"><i class="fas fa-comments"></i> 무료 세무 상담받기</a>
   </aside>
 
   <!-- ===== 히어로 ===== -->
@@ -438,7 +453,6 @@
         <p class="lead">복잡한 세무, 놓치기 쉬운 절세 혜택까지 — 대표님 대신 알아서 챙겨드립니다. 객실 매출 신고부터 부가세 환급까지 숙박업에 특화된 세무 서비스를 경험하세요.</p>
         <div class="hero-cta">
           <a href="#contact" class="btn btn-gold"><i class="fas fa-comments"></i> 무료 세무 상담받기</a>
-          <a href="#contact" class="btn btn-outline"><i class="fas fa-comment"></i> 카카오톡 상담</a>
         </div>
       </div>
     </div>
@@ -518,7 +532,7 @@
       <div class="benefits-wrap">
         <div class="benefits-copy reveal">
           <span class="section-tag">Why 명륜세무회계</span>
-          <h2>대표님이 놓치기 쉬운 <span class="accent">절세 혜택</span>,<br />명륜세무회계가 찾아드립니다</h2>
+          <h2>대표님이 놓치기 쉬운<br /><span class="accent" style="white-space:nowrap;">절세 혜택</span>, 명륜세무회계가 찾아드립니다</h2>
           <p class="intro">숙박업은 일반 업종과 세무 구조가 다릅니다. 객실 매출 신고 방식, 인건비 처리, 부가세 환급까지 — 숙박업을 잘 아는 전문가만이 챙길 수 있는 혜택이 있습니다.</p>
           <div class="benefit-list">
             <div class="benefit-item">
@@ -635,9 +649,9 @@
           <h2>세금 걱정, <span class="gold">지금 상담</span>으로<br />가볍게 내려놓으세요</h2>
           <p class="desc">상담은 무료입니다. 부담 없이 연락 주시면 숙박업 전문 세무사가 대표님의 상황에 맞는 해답을 드립니다.</p>
           <div class="contact-channels">
-            <a href="tel:0212345678" class="channel">
+            <a href="tel:03180272888" class="channel">
               <div class="c-icon"><i class="fas fa-phone-alt"></i></div>
-              <div><div class="c-label">전화 상담</div><div class="c-value">02-1234-5678</div></div>
+              <div><div class="c-label">전화 상담</div><div class="c-value">031-8027-2888</div></div>
             </a>
             <a href="#" class="channel" id="kakaoChannel">
               <div class="c-icon" style="background:#FEE500;color:#3C1E1E;"><i class="fas fa-comment"></i></div>
@@ -645,7 +659,7 @@
             </a>
             <div class="channel">
               <div class="c-icon"><i class="fas fa-clock"></i></div>
-              <div><div class="c-label">상담 운영 시간</div><div class="c-value">평일 09:00 ~ 18:00</div></div>
+              <div><div class="c-label">상담 운영 시간</div><div class="c-value">평일 10:00 ~ 18:00</div></div>
             </div>
           </div>
         </div>
@@ -683,10 +697,10 @@
         </div>
         <div class="footer-info">
           <div><strong>상호</strong> 명륜세무회계</div>
-          <div><strong>대표자</strong> 홍길동 세무사</div>
-          <div><strong>사업자등록번호</strong> 123-45-67890</div>
-          <div><strong>주소</strong> 서울특별시 종로구 명륜동 00길 00, 0층</div>
-          <div><strong>연락처</strong> 02-1234-5678 / myeongryun@example.com</div>
+          <div><strong>대표자</strong> 전창로 세무사</div>
+          <div><strong>사업자등록번호</strong> 890-57-00386</div>
+          <div><strong>주소</strong> 경기 고양시 덕양구 도래울로 110 4층 409호</div>
+          <div><strong>연락처</strong> 031-8027-2888 / tg@myrytax.com</div>
         </div>
       </div>
       <div class="footer-bottom">
@@ -695,8 +709,17 @@
     </div>
   </footer>
 
-  <!-- ===== 플로팅 카카오 버튼 ===== -->
-  <a href="#contact" class="float-kakao" aria-label="카카오톡 상담"><i class="fas fa-comment"></i></a>
+  <!-- ===== 우측 세로 퀵 메뉴 ===== -->
+  <nav class="quick-menu" aria-label="퀵 메뉴">
+    <a href="#" class="quick-btn quick-kakao" id="quickKakao" aria-label="카카오톡 상담">
+      <i class="fas fa-comment"></i>
+      <span class="q-label">카톡 상담</span>
+    </a>
+    <a href="#" class="quick-btn quick-youtube" id="quickYoutube" target="_blank" rel="noopener" aria-label="유튜브 채널">
+      <i class="fa-brands fa-youtube"></i>
+      <span class="q-label">유튜브</span>
+    </a>
+  </nav>
 
   <script>
     // ===== 헤더 스크롤 효과 =====
