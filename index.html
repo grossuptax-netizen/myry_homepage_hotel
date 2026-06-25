@@ -8,8 +8,7 @@
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" />
   <style>
     /* ===== 색상 변수 ===== */
@@ -33,14 +32,16 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html { scroll-behavior: smooth; }
     body {
-      font-family: Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-weight: 400;
       color: var(--text);
       background: var(--ivory);
       line-height: 1.7;
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
     }
-    h1, h2, h3, .serif { font-family: 'Noto Serif KR', serif; }
+    h1, h2 { font-family: 'Noto Sans KR', sans-serif; font-weight: 900; letter-spacing: -0.5px; }
+    h3, .serif { font-family: 'Noto Sans KR', sans-serif; }
     a { text-decoration: none; color: inherit; }
     ul { list-style: none; }
     img { max-width: 100%; display: block; }
@@ -61,7 +62,7 @@
     }
     .section-title {
       font-size: clamp(1.6rem, 3.4vw, 2.4rem);
-      font-weight: 700;
+      font-weight: 900;
       color: var(--plum);
       line-height: 1.35;
     }
@@ -83,7 +84,7 @@
       cursor: pointer;
       border: none;
       transition: all 0.3s ease;
-      font-family: Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      font-family: 'Noto Sans KR', sans-serif;
     }
     .btn-gold {
       background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
@@ -122,14 +123,12 @@
       height: 78px;
     }
     .logo { display: flex; align-items: center; gap: 10px; }
-    .logo .mark {
-      width: 38px; height: 38px; border-radius: 9px;
-      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
-      display: flex; align-items: center; justify-content: center;
-      color: #fff; font-weight: 700; font-family: 'Noto Serif KR', serif; font-size: 1.1rem;
+    .logo .logo-img {
+      height: 38px; width: auto; display: block;
+      background: transparent; border: none; border-radius: 0;
     }
     .logo .name {
-      font-family: 'Noto Serif KR', serif;
+      font-family: 'Noto Sans KR', sans-serif;
       font-size: 1.32rem; font-weight: 700; color: #fff;
       letter-spacing: 0.5px;
     }
@@ -192,7 +191,7 @@
     }
     .hero h1 {
       font-size: clamp(2rem, 5.2vw, 3.5rem);
-      font-weight: 700; line-height: 1.32;
+      font-weight: 900; line-height: 1.32;
       margin-bottom: 22px;
     }
     .hero h1 .gold { color: var(--gold-light); }
@@ -217,8 +216,8 @@
       height: 56px; width: 1px; background: rgba(255,255,255,0.15);
     }
     .stat-num {
-      font-family: 'Noto Serif KR', serif;
-      font-size: clamp(2rem, 4vw, 2.9rem); font-weight: 700;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: clamp(2rem, 4vw, 2.9rem); font-weight: 900;
       color: var(--gold-light); line-height: 1;
     }
     .stat-num .suffix { font-size: 1.3rem; margin-left: 2px; }
@@ -271,7 +270,7 @@
       background: var(--plum); color: var(--gold-light);
       display: flex; align-items: center; justify-content: center; font-size: 1.05rem;
     }
-    .benefit-item h4 { font-size: 1.08rem; color: var(--plum); margin-bottom: 4px; font-family: Pretendard, sans-serif; font-weight: 700; }
+    .benefit-item h4 { font-size: 1.08rem; color: var(--plum); margin-bottom: 4px; font-family: 'Noto Sans KR', sans-serif; font-weight: 700; }
     .benefit-item p { font-size: 0.93rem; color: var(--text-muted); font-weight: 300; }
     .benefits-visual {
       background: var(--plum); border-radius: 20px; padding: 46px 40px; color: #fff;
@@ -303,7 +302,7 @@
       width: 46px; height: 46px; border-radius: 50%;
       background: linear-gradient(135deg, var(--plum), var(--plum-light));
       color: #fff; display: flex; align-items: center; justify-content: center;
-      font-weight: 700; font-size: 1.05rem; font-family: 'Noto Serif KR';
+      font-weight: 700; font-size: 1.05rem; font-family: 'Noto Sans KR', sans-serif;
     }
     .review-author .info .who { font-weight: 700; color: var(--plum); font-size: 0.98rem; }
     .review-author .info .biz {
@@ -318,25 +317,51 @@
       content: ''; position: absolute; top: -120px; right: -120px; width: 360px; height: 360px;
       border-radius: 50%; background: radial-gradient(circle, rgba(203,169,97,0.18), transparent 70%);
     }
-    .contact-wrap { display: grid; grid-template-columns: 1fr 1.1fr; gap: 56px; position: relative; z-index: 2; }
-    .contact-info .section-tag { color: var(--gold-light); }
-    .contact-info h2 { color: #fff; font-size: clamp(1.7rem,3.4vw,2.4rem); line-height: 1.4; margin-bottom: 18px; }
-    .contact-info h2 .gold { color: var(--gold-light); }
-    .contact-info p.desc { color: rgba(255,255,255,0.82); font-weight: 300; margin-bottom: 34px; }
-    .contact-channels { display: flex; flex-direction: column; gap: 16px; }
-    .channel {
-      display: flex; align-items: center; gap: 16px;
-      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
-      padding: 18px 22px; border-radius: 14px; transition: all 0.3s;
+    .contact-wrap { display: grid; grid-template-columns: 1fr 1.1fr; gap: 56px; position: relative; z-index: 2; align-items: stretch; }
+    .contact-info { display: flex; }
+    /* 약속 카드 (딥 플럼) */
+    .promise-card {
+      background: linear-gradient(160deg, var(--plum-dark) 0%, var(--plum) 100%);
+      border: 1px solid rgba(203,169,97,0.25);
+      border-radius: 22px;
+      padding: 44px 40px;
+      width: 100%;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.28);
+      position: relative; overflow: hidden;
     }
-    .channel:hover { background: rgba(255,255,255,0.12); transform: translateX(5px); }
-    .channel .c-icon {
-      width: 50px; height: 50px; border-radius: 12px; flex-shrink: 0;
-      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-      display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #fff;
+    .promise-card::after {
+      content: '\f4fc'; font-family: 'Font Awesome 6 Free'; font-weight: 900;
+      position: absolute; right: -22px; bottom: -26px; font-size: 9rem; color: rgba(203,169,97,0.10);
     }
-    .channel .c-label { font-size: 0.82rem; color: rgba(255,255,255,0.65); }
-    .channel .c-value { font-size: 1.18rem; font-weight: 700; color: #fff; }
+    .promise-tag {
+      display: inline-block; font-size: 0.85rem; font-weight: 500; letter-spacing: 0.5px;
+      color: var(--gold-light);
+      background: rgba(203,169,97,0.14); border: 1px solid rgba(203,169,97,0.3);
+      padding: 7px 16px; border-radius: 50px; margin-bottom: 22px;
+    }
+    .promise-title {
+      font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 900; color: #fff;
+      line-height: 1.25; margin-bottom: 16px;
+    }
+    .promise-title .gold { color: var(--gold); }
+    .promise-desc { color: rgba(255,255,255,0.82); font-weight: 400; margin-bottom: 28px; }
+    .promise-list { display: flex; flex-direction: column; gap: 14px; margin-bottom: 30px; }
+    .promise-list li {
+      display: flex; align-items: center; gap: 12px;
+      font-size: 1.05rem; font-weight: 500; color: #fff;
+    }
+    .promise-list li i { color: var(--gold); font-size: 1.2rem; }
+    .promise-contacts {
+      display: flex; flex-direction: column; gap: 12px;
+      padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.12);
+    }
+    .promise-contacts .pc-item {
+      display: flex; align-items: center; gap: 10px;
+      color: rgba(255,255,255,0.85); font-size: 0.95rem; font-weight: 400;
+      transition: color 0.25s;
+    }
+    .promise-contacts a.pc-item:hover { color: var(--gold-light); }
+    .promise-contacts .pc-item i { color: var(--gold-light); width: 18px; text-align: center; }
 
     .contact-form {
       background: #fff; border-radius: 20px; padding: 40px 36px; color: var(--text);
@@ -348,7 +373,7 @@
     .form-group label { display: block; font-size: 0.9rem; font-weight: 500; color: var(--plum); margin-bottom: 7px; }
     .form-group input, .form-group textarea {
       width: 100%; padding: 13px 16px; border: 1.5px solid var(--lavender); border-radius: 10px;
-      font-size: 0.98rem; font-family: Pretendard, sans-serif; transition: border 0.25s; background: var(--ivory);
+      font-size: 0.98rem; font-family: 'Noto Sans KR', sans-serif; transition: border 0.25s; background: var(--ivory);
     }
     .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--gold); background: #fff; }
     .form-group textarea { resize: vertical; min-height: 100px; }
@@ -358,7 +383,9 @@
     /* ===== 푸터 ===== */
     footer.site-footer { background: var(--plum-dark); color: rgba(255,255,255,0.7); padding: 54px 0 30px; }
     .footer-top { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 30px; padding-bottom: 32px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-    .footer-brand .name { font-family: 'Noto Serif KR'; font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 12px; }
+    .footer-logo { display: flex; align-items: center; gap: 11px; margin-bottom: 12px; }
+    .footer-logo-img { height: 38px; width: auto; display: block; background: transparent; border: none; border-radius: 0; }
+    .footer-brand .name { font-family: 'Noto Sans KR', sans-serif; font-size: 1.5rem; font-weight: 900; color: #fff; }
     .footer-brand p { font-size: 0.9rem; font-weight: 300; max-width: 360px; }
     .footer-info { font-size: 0.9rem; line-height: 2; font-weight: 300; }
     .footer-info strong { color: rgba(255,255,255,0.92); font-weight: 500; margin-right: 8px; }
@@ -435,7 +462,7 @@
   <header class="site-header" id="header">
     <div class="container nav-inner">
       <a href="#hero" class="logo">
-        <span class="mark">明</span>
+        <img src="assets/logo.png" alt="명륜세무회계 로고" class="logo-img" />
         <span class="name">명륜세무회계</span>
       </a>
       <nav class="nav-menu">
@@ -661,21 +688,19 @@
     <div class="container">
       <div class="contact-wrap">
         <div class="contact-info reveal">
-          <span class="section-tag">Contact Us</span>
-          <h2>세금 걱정, <span class="gold">지금 상담</span>으로<br />가볍게 내려놓으세요</h2>
-          <p class="desc">상담은 무료입니다. 부담 없이 연락 주시면 숙박업 전문 세무사가 대표님의 상황에 맞는 해답을 드립니다.</p>
-          <div class="contact-channels">
-            <a href="tel:03180272888" class="channel">
-              <div class="c-icon"><i class="fas fa-phone-alt"></i></div>
-              <div><div class="c-label">전화 상담</div><div class="c-value">031-8027-2888</div></div>
-            </a>
-            <a href="#" class="channel" id="kakaoChannel">
-              <div class="c-icon" style="background:#FEE500;color:#3C1E1E;"><i class="fas fa-comment"></i></div>
-              <div><div class="c-label">카카오톡 상담</div><div class="c-value">@명륜세무회계</div></div>
-            </a>
-            <div class="channel">
-              <div class="c-icon"><i class="fas fa-clock"></i></div>
-              <div><div class="c-label">상담 운영 시간</div><div class="c-value">평일 10:00 ~ 18:00</div></div>
+          <div class="promise-card">
+            <span class="promise-tag">호텔·숙박업 전문 세무서비스</span>
+            <h2 class="promise-title"><span class="gold">1분 내로</span> 답변드립니다</h2>
+            <p class="promise-desc">지금 상담을 신청하시면 전문 상담사가 빠르게 연락드립니다.</p>
+            <ul class="promise-list">
+              <li><i class="fas fa-circle-check"></i> 무료 세무 상담</li>
+              <li><i class="fas fa-circle-check"></i> 호텔·숙박업 맞춤 절세 진단</li>
+              <li><i class="fas fa-circle-check"></i> 숙박업 전문 세무사 매칭</li>
+            </ul>
+            <div class="promise-contacts">
+              <a href="tel:03180272888" class="pc-item"><i class="fas fa-phone-alt"></i> 031-8027-2888</a>
+              <a href="#" class="pc-item" id="kakaoChannel"><i class="fas fa-comment"></i> 카카오톡 상담 @명륜세무회계</a>
+              <span class="pc-item"><i class="fas fa-clock"></i> 평일 10:00 ~ 18:00</span>
             </div>
           </div>
         </div>
@@ -708,7 +733,10 @@
     <div class="container">
       <div class="footer-top">
         <div class="footer-brand">
-          <div class="name">명륜세무회계</div>
+          <div class="footer-logo">
+            <img src="assets/logo.png" alt="명륜세무회계 로고" class="footer-logo-img" />
+            <span class="name">명륜세무회계</span>
+          </div>
           <p>호텔·숙박업 전문 세무사 사무실. 세무 기장, 종합소득세·부가가치세 신고, 절세 컨설팅까지 대표님의 든든한 세무 파트너가 되어드립니다.</p>
         </div>
         <div class="footer-info">
