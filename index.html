@@ -17,9 +17,9 @@
       --plum: #3D2B56;        /* 메인: 딥 플럼 */
       --plum-dark: #2C1E40;
       --plum-light: #5A4178;
-      --gold: #E0B872;        /* 포인트: 샴페인 골드 (밝고 화사한 톤) */
-      --gold-dark: #C9A24B;
-      --gold-light: #EFD4A0;
+      --gold: #CBA961;        /* 포인트: 앤티크 골드 (차분한 톤) */
+      --gold-dark: #B08E45;
+      --gold-light: #DEC58C;
       --lavender: #EDE8F0;    /* 보조: 연한 라벤더 그레이 */
       --ivory: #FAF8F5;       /* 배경: 아이보리 */
       --white: #FFFFFF;
@@ -88,11 +88,11 @@
     .btn-gold {
       background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
       color: #fff;
-      box-shadow: 0 8px 22px rgba(224,184,114, 0.35);
+      box-shadow: 0 8px 22px rgba(203,169,97, 0.35);
     }
     .btn-gold:hover {
       transform: translateY(-3px);
-      box-shadow: 0 14px 30px rgba(224,184,114, 0.5);
+      box-shadow: 0 14px 30px rgba(203,169,97, 0.5);
     }
     .btn-kakao {
       background: #FEE500;
@@ -152,9 +152,9 @@
       color: #fff; padding: 11px 22px; border-radius: 50px;
       font-weight: 700; font-size: 0.95rem;
       transition: all 0.3s ease;
-      box-shadow: 0 6px 18px rgba(224,184,114,0.35);
+      box-shadow: 0 6px 18px rgba(203,169,97,0.35);
     }
-    .nav-tel:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(224,184,114,0.5); }
+    .nav-tel:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(203,169,97,0.5); }
 
     .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
 
@@ -183,7 +183,7 @@
     .hero-content { max-width: 760px; color: #fff; }
     .hero-eyebrow {
       display: inline-flex; align-items: center; gap: 8px;
-      border: 1px solid rgba(224,184,114,0.6);
+      border: 1px solid rgba(203,169,97,0.6);
       color: var(--gold-light);
       padding: 7px 18px; border-radius: 50px;
       font-size: 0.85rem; letter-spacing: 1px; font-weight: 500;
@@ -245,7 +245,7 @@
       background: linear-gradient(135deg, var(--lavender), #fff);
       display: flex; align-items: center; justify-content: center;
       font-size: 1.6rem; color: var(--plum); margin-bottom: 22px;
-      border: 1px solid rgba(224,184,114,0.25);
+      border: 1px solid rgba(203,169,97,0.25);
       transition: all 0.35s ease;
     }
     .service-card:hover .service-icon {
@@ -279,7 +279,7 @@
     }
     .benefits-visual::after {
       content: '\f3a5'; font-family: 'Font Awesome 6 Free'; font-weight: 900;
-      position: absolute; right: -20px; bottom: -25px; font-size: 9rem; color: rgba(224,184,114,0.12);
+      position: absolute; right: -20px; bottom: -25px; font-size: 9rem; color: rgba(203,169,97,0.12);
     }
     .benefits-visual .vtag { color: var(--gold-light); font-weight: 700; letter-spacing: 1px; font-size: 0.85rem; }
     .benefits-visual h3 { font-size: 1.5rem; margin: 14px 0 20px; line-height: 1.45; }
@@ -308,7 +308,7 @@
     .review-author .info .who { font-weight: 700; color: var(--plum); font-size: 0.98rem; }
     .review-author .info .biz {
       display: inline-block; margin-top: 3px; font-size: 0.78rem; font-weight: 500;
-      color: var(--gold-dark); background: rgba(224,184,114,0.12);
+      color: var(--gold-dark); background: rgba(203,169,97,0.12);
       padding: 2px 10px; border-radius: 50px;
     }
 
@@ -316,7 +316,7 @@
     .contact { background: var(--plum); color: #fff; position: relative; overflow: hidden; }
     .contact::before {
       content: ''; position: absolute; top: -120px; right: -120px; width: 360px; height: 360px;
-      border-radius: 50%; background: radial-gradient(circle, rgba(224,184,114,0.18), transparent 70%);
+      border-radius: 50%; background: radial-gradient(circle, rgba(203,169,97,0.18), transparent 70%);
     }
     .contact-wrap { display: grid; grid-template-columns: 1fr 1.1fr; gap: 56px; position: relative; z-index: 2; }
     .contact-info .section-tag { color: var(--gold-light); }
@@ -364,27 +364,43 @@
     .footer-info strong { color: rgba(255,255,255,0.92); font-weight: 500; margin-right: 8px; }
     .footer-bottom { padding-top: 26px; text-align: center; font-size: 0.83rem; font-weight: 300; color: rgba(255,255,255,0.45); }
 
-    /* ===== 우측 세로 퀵 메뉴 (플로팅) ===== */
+    /* ===== 우측 세로 퀵 메뉴 (흰색 카드 박스) ===== */
     .quick-menu {
       position: fixed; right: 22px; top: 50%; transform: translateY(-50%);
-      z-index: 950; display: flex; flex-direction: column; gap: 12px;
+      z-index: 950;
+      background: #FFFFFF;
+      border-radius: 18px;
+      padding: 8px;
+      display: flex; flex-direction: column;
+      box-shadow: 0 10px 30px rgba(61, 43, 86, 0.18);
+      border: 1px solid var(--lavender);
     }
     .quick-btn {
-      width: 60px; height: 60px; border-radius: 16px;
+      width: 66px; padding: 12px 6px; border-radius: 12px;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 3px; cursor: pointer; transition: all 0.3s ease;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.18); text-decoration: none;
+      gap: 7px; cursor: pointer; transition: all 0.25s ease; text-decoration: none;
     }
-    .quick-btn i { font-size: 1.45rem; line-height: 1; }
-    .quick-btn .q-label { font-size: 0.62rem; font-weight: 700; line-height: 1; }
-    .quick-btn:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0,0,0,0.28); }
-    .quick-kakao { background: #FEE500; color: #3C1E1E; }
-    .quick-youtube { background: #FF0000; color: #FFFFFF; }
+    .quick-btn .q-icon {
+      width: 38px; height: 38px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.25s ease;
+    }
+    .quick-btn .q-icon i { font-size: 1.25rem; line-height: 1; }
+    .quick-btn .q-label { font-size: 0.66rem; font-weight: 700; line-height: 1; color: var(--text); }
+    .quick-btn:hover { background: var(--ivory); }
+    .quick-btn:hover .q-icon { transform: scale(1.12); }
+    /* 카드 내부 두 버튼 사이 구분선 */
+    .quick-btn + .quick-btn { border-top: 1px solid var(--lavender); }
+    /* 카카오: 노란 원 + 갈색 말풍선 / 유튜브: 빨간 아이콘 */
+    .q-icon-kakao { background: #FEE500; color: #3C1E1E; }
+    .q-icon-youtube { color: #FF0000; }
+    .q-icon-youtube i { font-size: 1.55rem; }
     @media (max-width: 760px) {
-      .quick-menu { right: 14px; gap: 10px; }
-      .quick-btn { width: 54px; height: 54px; border-radius: 14px; }
-      .quick-btn i { font-size: 1.3rem; }
-      .quick-btn .q-label { font-size: 0.58rem; }
+      .quick-menu { right: 14px; padding: 6px; border-radius: 16px; }
+      .quick-btn { width: 58px; padding: 10px 4px; }
+      .quick-btn .q-icon { width: 34px; height: 34px; }
+      .quick-btn .q-icon i { font-size: 1.1rem; }
+      .quick-btn .q-label { font-size: 0.6rem; }
     }
 
     /* ===== fade-in 애니메이션 ===== */
@@ -712,11 +728,11 @@
   <!-- ===== 우측 세로 퀵 메뉴 ===== -->
   <nav class="quick-menu" aria-label="퀵 메뉴">
     <a href="#" class="quick-btn quick-kakao" id="quickKakao" aria-label="카카오톡 상담">
-      <i class="fas fa-comment"></i>
+      <span class="q-icon q-icon-kakao"><i class="fas fa-comment"></i></span>
       <span class="q-label">카톡 상담</span>
     </a>
     <a href="#" class="quick-btn quick-youtube" id="quickYoutube" target="_blank" rel="noopener" aria-label="유튜브 채널">
-      <i class="fa-brands fa-youtube"></i>
+      <span class="q-icon q-icon-youtube"><i class="fa-brands fa-youtube"></i></span>
       <span class="q-label">유튜브</span>
     </a>
   </nav>
