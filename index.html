@@ -129,9 +129,10 @@
     }
     .logo .name {
       font-family: 'Noto Sans KR', sans-serif;
-      font-size: 1.32rem; font-weight: 700; color: #fff;
+      font-size: 1.32rem; font-weight: 900; color: #fff;
       letter-spacing: 0.5px;
     }
+    .name-gold { color: var(--gold); }
     .nav-menu { display: flex; align-items: center; gap: 34px; }
     .nav-menu a.menu-link {
       color: rgba(255,255,255,0.92);
@@ -463,7 +464,7 @@
     <div class="container nav-inner">
       <a href="#hero" class="logo">
         <img src="assets/logo.png" alt="명륜세무회계 로고" class="logo-img" />
-        <span class="name">명륜세무회계</span>
+        <span class="name">명륜<span class="name-gold">세무회계</span></span>
       </a>
       <nav class="nav-menu">
         <a href="#services" class="menu-link">서비스소개</a>
@@ -575,7 +576,7 @@
       <div class="benefits-wrap">
         <div class="benefits-copy reveal">
           <span class="section-tag">Why 명륜세무회계</span>
-          <h2>대표님이 놓치기 쉬운<br /><span class="accent" style="white-space:nowrap;">절세 혜택</span>, 명륜세무회계가 찾아드립니다</h2>
+          <h2 style="word-break:keep-all;">대표님이 놓치기 쉬운 <span class="accent" style="white-space:nowrap;">절세 혜택</span>,<br />명륜세무회계가 찾아드립니다</h2>
           <p class="intro">숙박업은 일반 업종과 세무 구조가 다릅니다. 객실 매출 신고 방식, 인건비 처리, 부가세 환급까지 — 숙박업을 잘 아는 전문가만이 챙길 수 있는 혜택이 있습니다.</p>
           <div class="benefit-list">
             <div class="benefit-item">
@@ -595,8 +596,8 @@
             <div class="benefit-item">
               <div class="b-icon"><i class="fas fa-rotate-left"></i></div>
               <div>
-                <h4>부가세 환급 챙기기</h4>
-                <p>리모델링·시설 투자, 비품 구입 시 발생하는 매입세액을 꼼꼼히 챙겨 부가세 환급을 받아드립니다.</p>
+                <h4>매입내역 꼼꼼히 챙기기</h4>
+                <p>리모델링·시설 투자, 비품 구입 시 발생하는 매입내역을 빠짐없이 챙겨 부가세 신고에 반영해 드립니다.</p>
               </div>
             </div>
           </div>
@@ -628,7 +629,7 @@
         <div class="review-card reveal">
           <div class="quote"><i class="fas fa-quote-left"></i></div>
           <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-          <p class="text">예약 플랫폼 매출 정리가 늘 골치였는데, 알아서 깔끔하게 처리해 주시고 환급까지 챙겨주셔서 정말 든든합니다.</p>
+          <p class="text">예약 플랫폼 매출 정리가 늘 골치였는데, 알아서 깔끔하게 처리해 주시고 매입내역까지 빠짐없이 챙겨주셔서 정말 든든합니다.</p>
           <div class="review-author">
             <div class="avatar">金</div>
             <div class="info"><div class="who">김○○ 대표님</div><span class="biz">호텔</span></div>
@@ -655,7 +656,7 @@
         <div class="review-card reveal">
           <div class="quote"><i class="fas fa-quote-left"></i></div>
           <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-          <p class="text">시설 리모델링 후 부가세 환급을 꼼꼼히 챙겨주셔서 예상보다 큰 금액을 돌려받았습니다. 강력 추천합니다.</p>
+          <p class="text">시설 리모델링 후 매입내역을 꼼꼼히 챙겨 부가세 신고에 빠짐없이 반영해 주셔서 정말 든든했습니다. 강력 추천합니다.</p>
           <div class="review-author">
             <div class="avatar">崔</div>
             <div class="info"><div class="who">최○○ 사장님</div><span class="biz">게스트하우스</span></div>
@@ -691,7 +692,7 @@
           <div class="promise-card">
             <span class="promise-tag">호텔·숙박업 전문 세무서비스</span>
             <h2 class="promise-title"><span class="gold">1분 내로</span> 답변드립니다</h2>
-            <p class="promise-desc">지금 상담을 신청하시면 전문 상담사가 빠르게 연락드립니다.</p>
+            <p class="promise-desc">지금 상담을 신청하시면 세무사가 직접 빠르게 답변드립니다.</p>
             <ul class="promise-list">
               <li><i class="fas fa-circle-check"></i> 무료 세무 상담</li>
               <li><i class="fas fa-circle-check"></i> 호텔·숙박업 맞춤 절세 진단</li>
@@ -735,7 +736,7 @@
         <div class="footer-brand">
           <div class="footer-logo">
             <img src="assets/logo.png" alt="명륜세무회계 로고" class="footer-logo-img" />
-            <span class="name">명륜세무회계</span>
+            <span class="name">명륜<span class="name-gold">세무회계</span></span>
           </div>
           <p>호텔·숙박업 전문 세무사 사무실. 세무 기장, 종합소득세·부가가치세 신고, 절세 컨설팅까지 대표님의 든든한 세무 파트너가 되어드립니다.</p>
         </div>
