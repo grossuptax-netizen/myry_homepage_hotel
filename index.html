@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>명륜세무회계 | 호텔·숙박업 전문 세무사 사무실</title>
+  <meta name="description" content="명륜세무회계 - 호텔, 모텔, 펜션 등 숙박업 전문 세무 기장, 종합소득세·부가가치세 신고, 절세 컨설팅 전문 세무사 사무실" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" />
+  <style>
+    /* ===== 색상 변수 ===== */
+    :root {
+      --plum: #3D2B56;        /* 메인: 딥 플럼 */
+      --plum-dark: #2C1E40;
+      --plum-light: #5A4178;
+      --gold: #C9A24B;        /* 포인트: 샴페인 골드 */
+      --gold-dark: #B08D38;
+      --gold-light: #DCC27E;
+      --lavender: #EDE8F0;    /* 보조: 연한 라벤더 그레이 */
+      --ivory: #FAF8F5;       /* 배경: 아이보리 */
+      --white: #FFFFFF;
+      --text: #2C2C2C;        /* 본문 텍스트 */
+      --text-muted: #6B6B6B;
+      --shadow: 0 10px 40px rgba(61, 43, 86, 0.10);
+      --shadow-hover: 0 18px 50px rgba(61, 43, 86, 0.20);
+    }
+
+    /* ===== 기본 리셋 ===== */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      color: var(--text);
+      background: var(--ivory);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    h1, h2, h3, .serif { font-family: 'Noto Serif KR', serif; }
+    a { text-decoration: none; color: inherit; }
+    ul { list-style: none; }
+    img { max-width: 100%; display: block; }
+
+    .container { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+    section { padding: 96px 0; }
+
+    /* ===== 섹션 공통 헤더 ===== */
+    .section-head { text-align: center; margin-bottom: 56px; }
+    .section-tag {
+      display: inline-block;
+      font-size: 0.82rem;
+      letter-spacing: 3px;
+      font-weight: 700;
+      color: var(--gold-dark);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .section-title {
+      font-size: clamp(1.6rem, 3.4vw, 2.4rem);
+      font-weight: 700;
+      color: var(--plum);
+      line-height: 1.35;
+    }
+    .section-title .accent { color: var(--gold-dark); }
+    .section-sub {
+      margin-top: 16px;
+      color: var(--text-muted);
+      font-size: 1.02rem;
+      font-weight: 300;
+    }
+
+    /* ===== 버튼 ===== */
+    .btn {
+      display: inline-flex; align-items: center; gap: 9px;
+      padding: 15px 30px;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.3s ease;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+      color: #fff;
+      box-shadow: 0 8px 22px rgba(201, 162, 75, 0.35);
+    }
+    .btn-gold:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 14px 30px rgba(201, 162, 75, 0.5);
+    }
+    .btn-kakao {
+      background: #FEE500;
+      color: #3C1E1E;
+    }
+    .btn-kakao:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(254, 229, 0, 0.5); }
+    .btn-outline {
+      background: transparent;
+      color: #fff;
+      border: 1.5px solid rgba(255,255,255,0.7);
+    }
+    .btn-outline:hover { background: #fff; color: var(--plum); transform: translateY(-3px); }
+
+    /* ===== 헤더 ===== */
+    header.site-header {
+      position: fixed; top: 0; left: 0; width: 100%;
+      z-index: 1000;
+      transition: all 0.35s ease;
+      background: transparent;
+    }
+    header.site-header.scrolled {
+      background: var(--plum);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+    }
+    .nav-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 78px;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo .mark {
+      width: 38px; height: 38px; border-radius: 9px;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 700; font-family: 'Noto Serif KR', serif; font-size: 1.1rem;
+    }
+    .logo .name {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 1.32rem; font-weight: 700; color: #fff;
+      letter-spacing: 0.5px;
+    }
+    .nav-menu { display: flex; align-items: center; gap: 34px; }
+    .nav-menu a.menu-link {
+      color: rgba(255,255,255,0.92);
+      font-weight: 500; font-size: 0.98rem;
+      position: relative; transition: color 0.25s;
+    }
+    .nav-menu a.menu-link::after {
+      content: ''; position: absolute; left: 0; bottom: -6px;
+      width: 0; height: 2px; background: var(--gold);
+      transition: width 0.3s ease;
+    }
+    .nav-menu a.menu-link:hover { color: var(--gold-light); }
+    .nav-menu a.menu-link:hover::after { width: 100%; }
+    .nav-tel {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+      color: #fff; padding: 11px 22px; border-radius: 50px;
+      font-weight: 700; font-size: 0.95rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 18px rgba(201,162,75,0.35);
+    }
+    .nav-tel:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(201,162,75,0.5); }
+
+    .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+
+    /* ===== 모바일 메뉴 ===== */
+    .mobile-menu {
+      position: fixed; top: 0; right: -100%; width: 78%; max-width: 320px; height: 100vh;
+      background: var(--plum); z-index: 1100;
+      padding: 90px 28px 30px; transition: right 0.4s ease;
+      box-shadow: -10px 0 40px rgba(0,0,0,0.3);
+    }
+    .mobile-menu.open { right: 0; }
+    .mobile-menu a { display: block; color: #fff; font-size: 1.1rem; padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .mobile-menu .btn-gold { width: 100%; justify-content: center; margin-top: 24px; }
+    .mobile-close { position: absolute; top: 26px; right: 26px; background: none; border: none; color: #fff; font-size: 1.6rem; cursor: pointer; }
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1050; opacity: 0; visibility: hidden; transition: 0.3s; }
+    .overlay.show { opacity: 1; visibility: visible; }
+
+    /* ===== 히어로 ===== */
+    .hero {
+      position: relative; min-height: 100vh;
+      display: flex; align-items: center;
+      padding: 120px 0 80px;
+      background: linear-gradient(rgba(44,30,64,0.78), rgba(61,43,86,0.72)), url('assets/hero-bg.jpg') center/cover no-repeat;
+      background-attachment: fixed;
+    }
+    .hero-content { max-width: 760px; color: #fff; }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid rgba(201,162,75,0.6);
+      color: var(--gold-light);
+      padding: 7px 18px; border-radius: 50px;
+      font-size: 0.85rem; letter-spacing: 1px; font-weight: 500;
+      margin-bottom: 26px;
+      backdrop-filter: blur(4px);
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5.2vw, 3.5rem);
+      font-weight: 700; line-height: 1.32;
+      margin-bottom: 22px;
+    }
+    .hero h1 .gold { color: var(--gold-light); }
+    .hero p.lead {
+      font-size: clamp(1.02rem, 2.2vw, 1.25rem);
+      font-weight: 300; color: rgba(255,255,255,0.9);
+      margin-bottom: 38px; max-width: 580px;
+    }
+    .hero-cta { display: flex; gap: 16px; flex-wrap: wrap; }
+    .hero-scroll {
+      position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+      color: rgba(255,255,255,0.7); font-size: 1.4rem; animation: bounce 2s infinite;
+    }
+    @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0);} 50%{transform:translateX(-50%) translateY(10px);} }
+
+    /* ===== 통계 카운터 ===== */
+    .stats { background: var(--plum); padding: 70px 0; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 30px; }
+    .stat-item { text-align: center; color: #fff; position: relative; }
+    .stat-item:not(:last-child)::after {
+      content: ''; position: absolute; right: -15px; top: 50%; transform: translateY(-50%);
+      height: 56px; width: 1px; background: rgba(255,255,255,0.15);
+    }
+    .stat-num {
+      font-family: 'Noto Serif KR', serif;
+      font-size: clamp(2rem, 4vw, 2.9rem); font-weight: 700;
+      color: var(--gold-light); line-height: 1;
+    }
+    .stat-num .suffix { font-size: 1.3rem; margin-left: 2px; }
+    .stat-label { margin-top: 12px; font-size: 0.98rem; color: rgba(255,255,255,0.82); font-weight: 300; }
+
+    /* ===== 서비스 ===== */
+    .services { background: var(--ivory); }
+    .service-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 26px; }
+    .service-card {
+      background: #fff; border-radius: 16px; padding: 38px 30px;
+      box-shadow: var(--shadow); transition: all 0.35s ease;
+      border: 1px solid var(--lavender);
+      position: relative; overflow: hidden;
+    }
+    .service-card::before {
+      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+      background: linear-gradient(90deg, var(--gold), var(--gold-light));
+      transform: scaleX(0); transform-origin: left; transition: transform 0.4s ease;
+    }
+    .service-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-hover); }
+    .service-card:hover::before { transform: scaleX(1); }
+    .service-icon {
+      width: 66px; height: 66px; border-radius: 14px;
+      background: linear-gradient(135deg, var(--lavender), #fff);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; color: var(--plum); margin-bottom: 22px;
+      border: 1px solid rgba(201,162,75,0.25);
+      transition: all 0.35s ease;
+    }
+    .service-card:hover .service-icon {
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      color: #fff;
+    }
+    .service-card h3 { font-size: 1.25rem; color: var(--plum); margin-bottom: 12px; }
+    .service-card p { color: var(--text-muted); font-size: 0.96rem; font-weight: 300; }
+
+    /* ===== 강점/혜택 ===== */
+    .benefits { background: linear-gradient(180deg, #fff 0%, var(--lavender) 100%); }
+    .benefits-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+    .benefits-copy h2 {
+      font-size: clamp(1.6rem, 3.2vw, 2.3rem); color: var(--plum); line-height: 1.4; margin-bottom: 22px;
+    }
+    .benefits-copy h2 .accent { color: var(--gold-dark); }
+    .benefits-copy p.intro { color: var(--text-muted); margin-bottom: 30px; font-weight: 300; }
+    .benefit-list .benefit-item {
+      display: flex; gap: 16px; padding: 18px 0; border-bottom: 1px dashed rgba(61,43,86,0.15);
+    }
+    .benefit-item .b-icon {
+      flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%;
+      background: var(--plum); color: var(--gold-light);
+      display: flex; align-items: center; justify-content: center; font-size: 1.05rem;
+    }
+    .benefit-item h4 { font-size: 1.08rem; color: var(--plum); margin-bottom: 4px; font-family: 'Noto Sans KR'; font-weight: 700; }
+    .benefit-item p { font-size: 0.93rem; color: var(--text-muted); font-weight: 300; }
+    .benefits-visual {
+      background: var(--plum); border-radius: 20px; padding: 46px 40px; color: #fff;
+      box-shadow: var(--shadow); position: relative; overflow: hidden;
+    }
+    .benefits-visual::after {
+      content: '\f3a5'; font-family: 'Font Awesome 6 Free'; font-weight: 900;
+      position: absolute; right: -20px; bottom: -25px; font-size: 9rem; color: rgba(201,162,75,0.12);
+    }
+    .benefits-visual .vtag { color: var(--gold-light); font-weight: 700; letter-spacing: 1px; font-size: 0.85rem; }
+    .benefits-visual h3 { font-size: 1.5rem; margin: 14px 0 20px; line-height: 1.45; }
+    .benefits-visual ul li { padding: 11px 0; display: flex; gap: 12px; align-items: flex-start; font-weight: 300; color: rgba(255,255,255,0.9); }
+    .benefits-visual ul li i { color: var(--gold-light); margin-top: 5px; }
+
+    /* ===== 후기 ===== */
+    .reviews { background: var(--ivory); }
+    .review-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 26px; }
+    .review-card {
+      background: #fff; border-radius: 16px; padding: 32px 28px;
+      box-shadow: var(--shadow); border: 1px solid var(--lavender);
+      transition: all 0.35s ease; position: relative;
+    }
+    .review-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-hover); }
+    .review-card .quote { color: var(--gold); font-size: 1.8rem; margin-bottom: 10px; }
+    .review-card .stars { color: var(--gold); margin-bottom: 14px; font-size: 0.9rem; }
+    .review-card p.text { color: var(--text); font-weight: 300; margin-bottom: 22px; font-size: 0.97rem; }
+    .review-author { display: flex; align-items: center; gap: 13px; border-top: 1px solid var(--lavender); padding-top: 18px; }
+    .review-author .avatar {
+      width: 46px; height: 46px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--plum), var(--plum-light));
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 1.05rem; font-family: 'Noto Serif KR';
+    }
+    .review-author .info .who { font-weight: 700; color: var(--plum); font-size: 0.98rem; }
+    .review-author .info .biz {
+      display: inline-block; margin-top: 3px; font-size: 0.78rem; font-weight: 500;
+      color: var(--gold-dark); background: rgba(201,162,75,0.12);
+      padding: 2px 10px; border-radius: 50px;
+    }
+
+    /* ===== 상담 문의 ===== */
+    .contact { background: var(--plum); color: #fff; position: relative; overflow: hidden; }
+    .contact::before {
+      content: ''; position: absolute; top: -120px; right: -120px; width: 360px; height: 360px;
+      border-radius: 50%; background: radial-gradient(circle, rgba(201,162,75,0.18), transparent 70%);
+    }
+    .contact-wrap { display: grid; grid-template-columns: 1fr 1.1fr; gap: 56px; position: relative; z-index: 2; }
+    .contact-info .section-tag { color: var(--gold-light); }
+    .contact-info h2 { color: #fff; font-size: clamp(1.7rem,3.4vw,2.4rem); line-height: 1.4; margin-bottom: 18px; }
+    .contact-info h2 .gold { color: var(--gold-light); }
+    .contact-info p.desc { color: rgba(255,255,255,0.82); font-weight: 300; margin-bottom: 34px; }
+    .contact-channels { display: flex; flex-direction: column; gap: 16px; }
+    .channel {
+      display: flex; align-items: center; gap: 16px;
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+      padding: 18px 22px; border-radius: 14px; transition: all 0.3s;
+    }
+    .channel:hover { background: rgba(255,255,255,0.12); transform: translateX(5px); }
+    .channel .c-icon {
+      width: 50px; height: 50px; border-radius: 12px; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #fff;
+    }
+    .channel .c-label { font-size: 0.82rem; color: rgba(255,255,255,0.65); }
+    .channel .c-value { font-size: 1.18rem; font-weight: 700; color: #fff; }
+
+    .contact-form {
+      background: #fff; border-radius: 20px; padding: 40px 36px; color: var(--text);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .contact-form h3 { color: var(--plum); font-size: 1.4rem; margin-bottom: 6px; }
+    .contact-form .form-sub { color: var(--text-muted); font-size: 0.92rem; font-weight: 300; margin-bottom: 24px; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 0.9rem; font-weight: 500; color: var(--plum); margin-bottom: 7px; }
+    .form-group input, .form-group textarea {
+      width: 100%; padding: 13px 16px; border: 1.5px solid var(--lavender); border-radius: 10px;
+      font-size: 0.98rem; font-family: 'Noto Sans KR'; transition: border 0.25s; background: var(--ivory);
+    }
+    .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--gold); background: #fff; }
+    .form-group textarea { resize: vertical; min-height: 100px; }
+    .contact-form .btn-gold { width: 100%; justify-content: center; margin-top: 8px; }
+    .form-note { font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 14px; font-weight: 300; }
+
+    /* ===== 푸터 ===== */
+    footer.site-footer { background: var(--plum-dark); color: rgba(255,255,255,0.7); padding: 54px 0 30px; }
+    .footer-top { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 30px; padding-bottom: 32px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .footer-brand .name { font-family: 'Noto Serif KR'; font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 12px; }
+    .footer-brand p { font-size: 0.9rem; font-weight: 300; max-width: 360px; }
+    .footer-info { font-size: 0.9rem; line-height: 2; font-weight: 300; }
+    .footer-info strong { color: rgba(255,255,255,0.92); font-weight: 500; margin-right: 8px; }
+    .footer-bottom { padding-top: 26px; text-align: center; font-size: 0.83rem; font-weight: 300; color: rgba(255,255,255,0.45); }
+
+    /* ===== 플로팅 카카오 버튼 ===== */
+    .float-kakao {
+      position: fixed; right: 24px; bottom: 24px; z-index: 900;
+      width: 60px; height: 60px; border-radius: 50%; background: #FEE500;
+      display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: #3C1E1E;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25); transition: all 0.3s; cursor: pointer;
+    }
+    .float-kakao:hover { transform: scale(1.1) translateY(-3px); }
+
+    /* ===== fade-in 애니메이션 ===== */
+    .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease, transform 0.8s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal.d1 { transition-delay: 0.1s; }
+    .reveal.d2 { transition-delay: 0.2s; }
+    .reveal.d3 { transition-delay: 0.3s; }
+    .reveal.d4 { transition-delay: 0.4s; }
+
+    /* ===== 반응형 ===== */
+    @media (max-width: 980px) {
+      .benefits-wrap, .contact-wrap { grid-template-columns: 1fr; }
+      .service-grid, .review-grid { grid-template-columns: repeat(2,1fr); }
+      .hero { background-attachment: scroll; }
+    }
+    @media (max-width: 760px) {
+      section { padding: 70px 0; }
+      .nav-menu, .nav-tel { display: none; }
+      .hamburger { display: block; }
+      .stats-grid { grid-template-columns: repeat(2,1fr); gap: 40px 20px; }
+      .stat-item:nth-child(2)::after { display: none; }
+      .service-grid, .review-grid { grid-template-columns: 1fr; }
+      .hero-cta { flex-direction: column; }
+      .hero-cta .btn { width: 100%; justify-content: center; }
+      .footer-top { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <!-- ===== 헤더 ===== -->
+  <header class="site-header" id="header">
+    <div class="container nav-inner">
+      <a href="#hero" class="logo">
+        <span class="mark">明</span>
+        <span class="name">명륜세무회계</span>
+      </a>
+      <nav class="nav-menu">
+        <a href="#services" class="menu-link">서비스소개</a>
+        <a href="#benefits" class="menu-link">강점</a>
+        <a href="#reviews" class="menu-link">고객후기</a>
+        <a href="#contact" class="menu-link">상담문의</a>
+      </nav>
+      <a href="tel:0212345678" class="nav-tel"><i class="fas fa-phone-alt"></i> 02-1234-5678</a>
+      <button class="hamburger" id="hamburger" aria-label="메뉴 열기"><i class="fas fa-bars"></i></button>
+    </div>
+  </header>
+
+  <!-- ===== 모바일 메뉴 ===== -->
+  <div class="overlay" id="overlay"></div>
+  <aside class="mobile-menu" id="mobileMenu">
+    <button class="mobile-close" id="mobileClose" aria-label="메뉴 닫기"><i class="fas fa-times"></i></button>
+    <a href="#services">서비스소개</a>
+    <a href="#benefits">강점</a>
+    <a href="#reviews">고객후기</a>
+    <a href="#contact">상담문의</a>
+    <a href="tel:0212345678" class="btn btn-gold"><i class="fas fa-phone-alt"></i> 전화 상담받기</a>
+  </aside>
+
+  <!-- ===== 히어로 ===== -->
+  <section class="hero" id="hero">
+    <div class="container">
+      <div class="hero-content">
+        <span class="hero-eyebrow"><i class="fas fa-hotel"></i> 호텔·숙박업 전문 세무 파트너</span>
+        <h1>호텔·숙박업 전문 세무,<br /><span class="gold">명륜세무회계</span>가 책임집니다</h1>
+        <p class="lead">복잡한 세무, 놓치기 쉬운 절세 혜택까지 — 대표님 대신 알아서 챙겨드립니다. 객실 매출 신고부터 부가세 환급까지 숙박업에 특화된 세무 서비스를 경험하세요.</p>
+        <div class="hero-cta">
+          <a href="#contact" class="btn btn-gold"><i class="fas fa-comments"></i> 무료 세무 상담받기</a>
+          <a href="#contact" class="btn btn-outline"><i class="fas fa-comment"></i> 카카오톡 상담</a>
+        </div>
+      </div>
+    </div>
+    <a href="#stats" class="hero-scroll"><i class="fas fa-chevron-down"></i></a>
+  </section>
+
+  <!-- ===== 통계 카운터 ===== -->
+  <section class="stats" id="stats" style="padding-top:70px;padding-bottom:70px;">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-item reveal">
+          <div class="stat-num"><span class="counter" data-target="1200">0</span><span class="suffix">건+</span></div>
+          <div class="stat-label">누적 세무 상담</div>
+        </div>
+        <div class="stat-item reveal d1">
+          <div class="stat-num"><span class="counter" data-target="380">0</span><span class="suffix">곳</span></div>
+          <div class="stat-label">호텔·숙박업 전담 고객</div>
+        </div>
+        <div class="stat-item reveal d2">
+          <div class="stat-num"><span class="counter" data-target="23">0</span><span class="suffix">%</span></div>
+          <div class="stat-label">평균 절세 효과</div>
+        </div>
+        <div class="stat-item reveal d3">
+          <div class="stat-num"><span class="counter" data-target="24">0</span><span class="suffix">시간</span></div>
+          <div class="stat-label">이내 빠른 응대</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 서비스 ===== -->
+  <section class="services" id="services">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="section-tag">Our Services</span>
+        <h2 class="section-title">대표님의 세무, <span class="accent">하나부터 열까지</span> 책임집니다</h2>
+        <p class="section-sub">숙박업 현장을 잘 아는 전문가가 세무 업무 전 과정을 직접 관리합니다.</p>
+      </div>
+      <div class="service-grid">
+        <div class="service-card reveal">
+          <div class="service-icon"><i class="fas fa-book-open"></i></div>
+          <h3>세무 기장 대리</h3>
+          <p>매출·매입 장부 정리부터 월별 결산까지, 정확하고 빈틈없는 기장 업무를 대행합니다.</p>
+        </div>
+        <div class="service-card reveal d1">
+          <div class="service-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+          <h3>종합소득세·부가세 신고</h3>
+          <p>종합소득세와 부가가치세 신고를 기한 내 정확하게 처리하여 가산세 부담을 예방합니다.</p>
+        </div>
+        <div class="service-card reveal d2">
+          <div class="service-icon"><i class="fas fa-piggy-bank"></i></div>
+          <h3>절세 컨설팅</h3>
+          <p>사업 구조에 맞는 절세 전략을 설계하여 놓치기 쉬운 공제·환급 혜택을 빠짐없이 챙겨드립니다.</p>
+        </div>
+        <div class="service-card reveal">
+          <div class="service-icon"><i class="fas fa-bed"></i></div>
+          <h3>호텔·숙박업 맞춤 세무</h3>
+          <p>객실 매출, 플랫폼 수수료, 인건비 처리 등 숙박업 특성을 반영한 맞춤형 세무 관리를 제공합니다.</p>
+        </div>
+        <div class="service-card reveal d1">
+          <div class="service-icon"><i class="fas fa-shield-halved"></i></div>
+          <h3>세무조사 대응</h3>
+          <p>세무조사 사전 점검과 대응 자문으로 대표님이 안심하고 사업에 집중할 수 있도록 지원합니다.</p>
+        </div>
+        <div class="service-card reveal d2">
+          <div class="service-icon"><i class="fas fa-headset"></i></div>
+          <h3>1:1 전담 세무 관리</h3>
+          <p>담당 세무 전문가가 배정되어 언제든 빠르게 상담받을 수 있는 전담 관리 시스템을 운영합니다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 강점/혜택 ===== -->
+  <section class="benefits" id="benefits">
+    <div class="container">
+      <div class="benefits-wrap">
+        <div class="benefits-copy reveal">
+          <span class="section-tag">Why 명륜세무회계</span>
+          <h2>대표님이 놓치기 쉬운 <span class="accent">절세 혜택</span>,<br />명륜세무회계가 찾아드립니다</h2>
+          <p class="intro">숙박업은 일반 업종과 세무 구조가 다릅니다. 객실 매출 신고 방식, 인건비 처리, 부가세 환급까지 — 숙박업을 잘 아는 전문가만이 챙길 수 있는 혜택이 있습니다.</p>
+          <div class="benefit-list">
+            <div class="benefit-item">
+              <div class="b-icon"><i class="fas fa-receipt"></i></div>
+              <div>
+                <h4>객실 매출 신고 최적화</h4>
+                <p>현금·카드·예약 플랫폼별 매출을 정확히 구분 신고하여 과세 누락과 과다 신고를 모두 방지합니다.</p>
+              </div>
+            </div>
+            <div class="benefit-item">
+              <div class="b-icon"><i class="fas fa-users"></i></div>
+              <div>
+                <h4>인건비·복리후생비 처리</h4>
+                <p>프런트·청소 인력 등 인건비를 합법적으로 비용 처리하여 소득세 부담을 효과적으로 줄여드립니다.</p>
+              </div>
+            </div>
+            <div class="benefit-item">
+              <div class="b-icon"><i class="fas fa-rotate-left"></i></div>
+              <div>
+                <h4>부가세 환급 챙기기</h4>
+                <p>리모델링·시설 투자, 비품 구입 시 발생하는 매입세액을 꼼꼼히 챙겨 부가세 환급을 받아드립니다.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="benefits-visual reveal d2">
+          <span class="vtag">SPECIALIZED FOR HOSPITALITY</span>
+          <h3>호텔·모텔·펜션,<br />숙박업이라면 더욱 전문적으로</h3>
+          <ul>
+            <li><i class="fas fa-check-circle"></i> 호텔·모텔·펜션·게스트하우스 등 숙박업 전 업종 경험</li>
+            <li><i class="fas fa-check-circle"></i> OTA(온라인 예약 플랫폼) 수수료·매출 세무 처리</li>
+            <li><i class="fas fa-check-circle"></i> 성수기·비수기 매출 변동을 고려한 세무 설계</li>
+            <li><i class="fas fa-check-circle"></i> 시설 투자 시점에 맞춘 부가세 환급 전략</li>
+            <li><i class="fas fa-check-circle"></i> 사업 확장·법인 전환 시 세무 컨설팅</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 고객 후기 ===== -->
+  <section class="reviews" id="reviews">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="section-tag">Client Reviews</span>
+        <h2 class="section-title">숙박업 대표님들이 <span class="accent">먼저 추천</span>합니다</h2>
+        <p class="section-sub">명륜세무회계와 함께한 고객님들의 생생한 후기입니다.</p>
+      </div>
+      <div class="review-grid">
+        <div class="review-card reveal">
+          <div class="quote"><i class="fas fa-quote-left"></i></div>
+          <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+          <p class="text">예약 플랫폼 매출 정리가 늘 골치였는데, 알아서 깔끔하게 처리해 주시고 환급까지 챙겨주셔서 정말 든든합니다.</p>
+          <div class="review-author">
+            <div class="avatar">金</div>
+            <div class="info"><div class="who">김○○ 대표님</div><span class="biz">호텔</span></div>
+          </div>
+        </div>
+        <div class="review-card reveal d1">
+          <div class="quote"><i class="fas fa-quote-left"></i></div>
+          <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+          <p class="text">펜션 운영하면서 세금 신경 쓸 여유가 없었는데, 전담 담당자분이 먼저 챙겨주셔서 본업에만 집중할 수 있게 됐어요.</p>
+          <div class="review-author">
+            <div class="avatar">李</div>
+            <div class="info"><div class="who">이○○ 사장님</div><span class="biz">펜션</span></div>
+          </div>
+        </div>
+        <div class="review-card reveal d2">
+          <div class="quote"><i class="fas fa-quote-left"></i></div>
+          <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+          <p class="text">전에 다른 곳은 숙박업을 잘 몰라 답답했는데, 여기는 우리 업종을 너무 잘 알아서 상담 한 번에 신뢰가 갔습니다.</p>
+          <div class="review-author">
+            <div class="avatar">朴</div>
+            <div class="info"><div class="who">박○○ 대표님</div><span class="biz">모텔</span></div>
+          </div>
+        </div>
+        <div class="review-card reveal">
+          <div class="quote"><i class="fas fa-quote-left"></i></div>
+          <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+          <p class="text">시설 리모델링 후 부가세 환급을 꼼꼼히 챙겨주셔서 예상보다 큰 금액을 돌려받았습니다. 강력 추천합니다.</p>
+          <div class="review-author">
+            <div class="avatar">崔</div>
+            <div class="info"><div class="who">최○○ 사장님</div><span class="biz">게스트하우스</span></div>
+          </div>
+        </div>
+        <div class="review-card reveal d1">
+          <div class="quote"><i class="fas fa-quote-left"></i></div>
+          <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+          <p class="text">연락하면 24시간 안에 답이 와요. 응대가 빠르고 친절해서 세무 관련 궁금한 점을 마음 편히 물어볼 수 있습니다.</p>
+          <div class="review-author">
+            <div class="avatar">鄭</div>
+            <div class="info"><div class="who">정○○ 대표님</div><span class="biz">리조트</span></div>
+          </div>
+        </div>
+        <div class="review-card reveal d2">
+          <div class="quote"><i class="fas fa-quote-left"></i></div>
+          <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+          <p class="text">종합소득세 신고 때마다 불안했는데, 절세까지 고려해 처리해 주셔서 세금 부담이 확 줄었습니다. 진작 맡길 걸 그랬어요.</p>
+          <div class="review-author">
+            <div class="avatar">尹</div>
+            <div class="info"><div class="who">윤○○ 사장님</div><span class="biz">민박</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 상담 문의 ===== -->
+  <section class="contact" id="contact">
+    <div class="container">
+      <div class="contact-wrap">
+        <div class="contact-info reveal">
+          <span class="section-tag">Contact Us</span>
+          <h2>세금 걱정, <span class="gold">지금 상담</span>으로<br />가볍게 내려놓으세요</h2>
+          <p class="desc">상담은 무료입니다. 부담 없이 연락 주시면 숙박업 전문 세무사가 대표님의 상황에 맞는 해답을 드립니다.</p>
+          <div class="contact-channels">
+            <a href="tel:0212345678" class="channel">
+              <div class="c-icon"><i class="fas fa-phone-alt"></i></div>
+              <div><div class="c-label">전화 상담</div><div class="c-value">02-1234-5678</div></div>
+            </a>
+            <a href="#" class="channel" id="kakaoChannel">
+              <div class="c-icon" style="background:#FEE500;color:#3C1E1E;"><i class="fas fa-comment"></i></div>
+              <div><div class="c-label">카카오톡 상담</div><div class="c-value">@명륜세무회계</div></div>
+            </a>
+            <div class="channel">
+              <div class="c-icon"><i class="fas fa-clock"></i></div>
+              <div><div class="c-label">상담 운영 시간</div><div class="c-value">평일 09:00 ~ 18:00</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="contact-form reveal d2">
+          <h3>무료 상담 신청</h3>
+          <p class="form-sub">아래 정보를 남겨주시면 담당자가 빠르게 연락드립니다.</p>
+          <form id="consultForm">
+            <div class="form-group">
+              <label for="name">이름</label>
+              <input type="text" id="name" name="name" placeholder="성함을 입력해 주세요" required />
+            </div>
+            <div class="form-group">
+              <label for="phone">연락처</label>
+              <input type="tel" id="phone" name="phone" placeholder="010-0000-0000" required />
+            </div>
+            <div class="form-group">
+              <label for="message">문의 내용</label>
+              <textarea id="message" name="message" placeholder="업종(호텔/모텔/펜션 등)과 문의하실 내용을 적어주세요."></textarea>
+            </div>
+            <button type="submit" class="btn btn-gold"><i class="fas fa-paper-plane"></i> 무료 상담 신청하기</button>
+            <p class="form-note">* 입력하신 정보는 상담 목적 외에 사용되지 않습니다.</p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 푸터 ===== -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="name">명륜세무회계</div>
+          <p>호텔·숙박업 전문 세무사 사무실. 세무 기장, 종합소득세·부가가치세 신고, 절세 컨설팅까지 대표님의 든든한 세무 파트너가 되어드립니다.</p>
+        </div>
+        <div class="footer-info">
+          <div><strong>상호</strong> 명륜세무회계</div>
+          <div><strong>대표자</strong> 홍길동 세무사</div>
+          <div><strong>사업자등록번호</strong> 123-45-67890</div>
+          <div><strong>주소</strong> 서울특별시 종로구 명륜동 00길 00, 0층</div>
+          <div><strong>연락처</strong> 02-1234-5678 / myeongryun@example.com</div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        © 2026 명륜세무회계 (Myeongryun Tax &amp; Accounting). All rights reserved.
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===== 플로팅 카카오 버튼 ===== -->
+  <a href="#contact" class="float-kakao" aria-label="카카오톡 상담"><i class="fas fa-comment"></i></a>
+
+  <script>
+    // ===== 헤더 스크롤 효과 =====
+    const header = document.getElementById('header');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 40) header.classList.add('scrolled');
+      else header.classList.remove('scrolled');
+    });
+
+    // ===== 모바일 메뉴 =====
+    const hamburger = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const mobileClose = document.getElementById('mobileClose');
+    const overlay = document.getElementById('overlay');
+    function openMenu() { mobileMenu.classList.add('open'); overlay.classList.add('show'); }
+    function closeMenu() { mobileMenu.classList.remove('open'); overlay.classList.remove('show'); }
+    hamburger.addEventListener('click', openMenu);
+    mobileClose.addEventListener('click', closeMenu);
+    overlay.addEventListener('click', closeMenu);
+    mobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMenu));
+
+    // ===== fade-in 스크롤 애니메이션 =====
+    const revealEls = document.querySelectorAll('.reveal');
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    revealEls.forEach(el => revealObserver.observe(el));
+
+    // ===== 숫자 카운트업 애니메이션 =====
+    let countersStarted = false;
+    const statsSection = document.getElementById('stats');
+    function animateCounters() {
+      document.querySelectorAll('.counter').forEach(counter => {
+        const target = +counter.dataset.target;
+        const duration = 1800;
+        const startTime = performance.now();
+        function update(now) {
+          const progress = Math.min((now - startTime) / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+          counter.textContent = Math.floor(eased * target).toLocaleString('ko-KR');
+          if (progress < 1) requestAnimationFrame(update);
+          else counter.textContent = target.toLocaleString('ko-KR');
+        }
+        requestAnimationFrame(update);
+      });
+    }
+    const statObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !countersStarted) {
+          countersStarted = true;
+          animateCounters();
+        }
+      });
+    }, { threshold: 0.4 });
+    statObserver.observe(statsSection);
+
+    // ===== 상담 신청 폼 =====
+    const form = document.getElementById('consultForm');
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      if (!name || !phone) {
+        alert('이름과 연락처를 입력해 주세요.');
+        return;
+      }
+      alert(name + ' 대표님, 상담 신청이 접수되었습니다.\n빠른 시일 내에 연락드리겠습니다. 감사합니다!');
+      form.reset();
+    });
+
+    // ===== 카카오톡 채널 클릭 =====
+    document.getElementById('kakaoChannel').addEventListener('click', (e) => {
+      e.preventDefault();
+      alert('카카오톡 채널 @명륜세무회계 로 연결됩니다.\n(실제 채널 URL로 연결을 설정해 주세요.)');
+    });
+  </script>
+</body>
+</html>
