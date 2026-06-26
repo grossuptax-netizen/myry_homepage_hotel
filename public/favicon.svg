@@ -1,1 +1,38 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#3D2B56"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="serif" font-size="34" font-weight="700" fill="#C9A24B">明</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2E2147"/>
+      <stop offset="1" stop-color="#1E2240"/>
+    </linearGradient>
+    <linearGradient id="tile1" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5EA8FF"/>
+      <stop offset="1" stop-color="#3B7DF0"/>
+    </linearGradient>
+    <linearGradient id="tile2" x1="0" y1="14" x2="40" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4F8BF5"/>
+      <stop offset="1" stop-color="#3257E6"/>
+    </linearGradient>
+    <linearGradient id="tile3" x1="34" y1="0" x2="60" y2="20" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4A78EE"/>
+      <stop offset="1" stop-color="#4257E0"/>
+    </linearGradient>
+    <linearGradient id="tile4" x1="34" y1="22" x2="60" y2="42" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5650DE"/>
+      <stop offset="1" stop-color="#6A45D6"/>
+    </linearGradient>
+    <linearGradient id="tile5" x1="34" y1="44" x2="60" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7B46D8"/>
+      <stop offset="1" stop-color="#9A4FE0"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <g>
+    <!-- 좌측 열: 넓은 블록 2개 -->
+    <rect x="10" y="11" width="22" height="20" rx="3" fill="url(#tile1)"/>
+    <rect x="10" y="33" width="22" height="20" rx="3" fill="url(#tile2)"/>
+    <!-- 우측 열: 좁은 블록 3개 -->
+    <rect x="34" y="11" width="20" height="12.7" rx="3" fill="url(#tile3)"/>
+    <rect x="34" y="25.7" width="20" height="12.6" rx="3" fill="url(#tile4)"/>
+    <rect x="34" y="40.3" width="20" height="12.7" rx="3" fill="url(#tile5)"/>
+  </g>
+</svg>
