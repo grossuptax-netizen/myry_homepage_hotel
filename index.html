@@ -199,8 +199,12 @@
     .hero p.lead {
       font-size: clamp(1.02rem, 2.2vw, 1.25rem);
       font-weight: 300; color: rgba(255,255,255,0.9);
-      margin-bottom: 38px; max-width: 580px;
+      margin-bottom: 38px; max-width: 600px;
+      word-break: keep-all;
     }
+    /* PC에서만 보이는 줄바꿈 (모바일은 자동 줄바꿈) */
+    .br-pc { display: inline; }
+    @media (max-width: 760px) { .br-pc { display: none; } }
     .hero-cta { display: flex; gap: 16px; flex-wrap: wrap; }
     .hero-scroll {
       position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
@@ -262,7 +266,7 @@
       font-size: clamp(1.6rem, 3.2vw, 2.3rem); color: var(--plum); line-height: 1.4; margin-bottom: 22px;
     }
     .benefits-copy h2 .accent { color: var(--gold-dark); }
-    .benefits-copy p.intro { color: var(--text-muted); margin-bottom: 30px; font-weight: 300; }
+    .benefits-copy p.intro { color: var(--text-muted); margin-bottom: 30px; font-weight: 300; word-break: keep-all; }
     .benefit-list .benefit-item {
       display: flex; gap: 16px; padding: 18px 0; border-bottom: 1px dashed rgba(61,43,86,0.15);
     }
@@ -372,6 +376,8 @@
     .contact-form .form-sub { color: var(--text-muted); font-size: 0.92rem; font-weight: 300; margin-bottom: 24px; }
     .form-group { margin-bottom: 18px; }
     .form-group label { display: block; font-size: 0.9rem; font-weight: 500; color: var(--plum); margin-bottom: 7px; }
+    .form-group label .req { color: #E0322E; margin-left: 3px; font-weight: 700; }
+    .form-group label .opt { color: var(--text-muted); font-size: 0.8rem; font-weight: 400; margin-left: 4px; }
     .form-group input, .form-group textarea {
       width: 100%; padding: 13px 16px; border: 1.5px solid var(--lavender); border-radius: 10px;
       font-size: 0.98rem; font-family: 'Noto Sans KR', sans-serif; transition: border 0.25s; background: var(--ivory);
@@ -386,13 +392,16 @@
 
     /* ===== 푸터 ===== */
     footer.site-footer { background: var(--plum-dark); color: rgba(255,255,255,0.7); padding: 54px 0 30px; }
-    .footer-top { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 30px; padding-bottom: 32px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .footer-top { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 40px; padding-bottom: 32px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .footer-brand { flex: 1 1 320px; }
     .footer-logo { display: flex; align-items: center; gap: 11px; margin-bottom: 12px; }
     .footer-logo-img { height: 38px; width: auto; display: block; background: transparent; border: none; border-radius: 0; }
     .footer-brand .name { font-family: 'Noto Sans KR', sans-serif; font-size: 1.5rem; font-weight: 900; color: #fff; }
-    .footer-brand p { font-size: 0.9rem; font-weight: 300; max-width: 360px; }
-    .footer-info { font-size: 0.9rem; line-height: 2; font-weight: 300; }
-    .footer-info strong { color: rgba(255,255,255,0.92); font-weight: 500; margin-right: 8px; }
+    .footer-brand p { font-size: 0.9rem; font-weight: 300; max-width: 380px; line-height: 1.8; word-break: keep-all; }
+    .footer-info { font-size: 0.9rem; font-weight: 300; flex: 0 1 auto; }
+    .footer-info .fi-row { display: flex; gap: 10px; padding: 4px 0; word-break: keep-all; }
+    .footer-info strong { color: rgba(255,255,255,0.92); font-weight: 500; flex: 0 0 96px; }
+    .footer-info .fi-val { color: rgba(255,255,255,0.7); }
     .footer-bottom { padding-top: 26px; text-align: center; font-size: 0.83rem; font-weight: 300; color: rgba(255,255,255,0.45); }
 
     /* ===== 우측 세로 퀵 메뉴 (흰색 카드 박스) ===== */
@@ -497,7 +506,7 @@
       <div class="hero-content">
         <span class="hero-eyebrow"><i class="fas fa-hotel"></i> 호텔·숙박업 전문 세무 파트너</span>
         <h1>호텔·숙박업 전문 세무,<br /><span class="gold">명륜세무회계</span>가 책임집니다</h1>
-        <p class="lead">복잡한 세무, 놓치기 쉬운 절세 혜택까지 — 대표님 대신 알아서 챙겨드립니다. 객실 매출 신고부터 부가세 환급까지 숙박업에 특화된 세무 서비스를 경험하세요.</p>
+        <p class="lead">복잡한 세무, 놓치기 쉬운 절세 혜택까지<br class="br-pc" />대표님 대신 알아서 챙겨드립니다.<br class="br-pc" />객실 매출 신고부터 매입내역 관리까지,<br class="br-pc" />숙박업에 특화된 세무 서비스를 경험하세요.</p>
         <div class="hero-cta">
           <a href="#contact" class="btn btn-gold"><i class="fas fa-comments"></i> 무료 세무 상담받기</a>
         </div>
@@ -580,13 +589,13 @@
         <div class="benefits-copy reveal">
           <span class="section-tag">Why 명륜세무회계</span>
           <h2 style="word-break:keep-all;">대표님이 놓치기 쉬운 <span class="accent" style="white-space:nowrap;">절세 혜택</span>,<br />명륜세무회계가 찾아드립니다</h2>
-          <p class="intro">숙박업은 일반 업종과 세무 구조가 다릅니다. 객실 매출 신고 방식, 인건비 처리, 부가세 환급까지 — 숙박업을 잘 아는 전문가만이 챙길 수 있는 혜택이 있습니다.</p>
+          <p class="intro">숙박업은 일반 업종과 세무 구조가 다릅니다.<br class="br-pc" />객실 매출 신고 방식, 인건비 처리 등<br class="br-pc" />숙박업을 잘 아는 전문가만이 챙길 수 있는 혜택이 있습니다.</p>
           <div class="benefit-list">
             <div class="benefit-item">
               <div class="b-icon"><i class="fas fa-receipt"></i></div>
               <div>
                 <h4>객실 매출 신고 최적화</h4>
-                <p>현금·카드·예약 플랫폼별 매출을 정확히 구분 신고하여 과세 누락과 과다 신고를 모두 방지합니다.</p>
+                <p>현금·카드·예약 플랫폼별 매출을 정확히 구분 신고하여 매출 누락과 과다 신고를 모두 방지합니다.</p>
               </div>
             </div>
             <div class="benefit-item">
@@ -612,7 +621,7 @@
             <li><i class="fas fa-check-circle"></i> 호텔·모텔·펜션·게스트하우스 등 숙박업 전 업종 경험</li>
             <li><i class="fas fa-check-circle"></i> OTA(온라인 예약 플랫폼) 수수료·매출 세무 처리</li>
             <li><i class="fas fa-check-circle"></i> 성수기·비수기 매출 변동을 고려한 세무 설계</li>
-            <li><i class="fas fa-check-circle"></i> 시설 투자 시점에 맞춘 부가세 환급 전략</li>
+            <li><i class="fas fa-check-circle"></i> 시설 투자 시점을 고려한 절세 전략 설계</li>
             <li><i class="fas fa-check-circle"></i> 사업 확장·법인 전환 시 세무 컨설팅</li>
           </ul>
         </div>
@@ -699,7 +708,7 @@
             <ul class="promise-list">
               <li><i class="fas fa-circle-check"></i> 무료 세무 상담</li>
               <li><i class="fas fa-circle-check"></i> 호텔·숙박업 맞춤 절세 진단</li>
-              <li><i class="fas fa-circle-check"></i> 숙박업 전문 세무사 매칭</li>
+              <li><i class="fas fa-circle-check"></i> 숙박업 전담 1:1 세무 관리</li>
             </ul>
             <div class="promise-contacts">
               <a href="tel:03180272888" class="pc-item"><i class="fas fa-phone-alt"></i> 031-8027-2888</a>
@@ -713,15 +722,15 @@
           <p class="form-sub">아래 정보를 남겨주시면 담당자가 빠르게 연락드립니다.</p>
           <form id="consultForm" action="https://formspree.io/f/maqgerea" method="POST">
             <div class="form-group">
-              <label for="name">이름</label>
+              <label for="name">이름<span class="req">*</span></label>
               <input type="text" id="name" name="이름" placeholder="성함을 입력해 주세요" required />
             </div>
             <div class="form-group">
-              <label for="phone">연락처</label>
+              <label for="phone">연락처<span class="req">*</span></label>
               <input type="tel" id="phone" name="연락처" placeholder="010-0000-0000" required />
             </div>
             <div class="form-group">
-              <label for="message">문의 내용</label>
+              <label for="message">문의 내용<span class="opt">(선택)</span></label>
               <textarea id="message" name="문의내용" placeholder="업종(호텔/모텔/펜션 등)과 문의하실 내용을 적어주세요."></textarea>
             </div>
             <button type="submit" class="btn btn-gold" id="consultSubmit"><i class="fas fa-paper-plane"></i> 무료 상담 신청하기</button>
@@ -748,11 +757,11 @@
           <p>호텔·숙박업 전문 세무사 사무실. 세무 기장, 종합소득세·부가가치세 신고, 절세 컨설팅까지 대표님의 든든한 세무 파트너가 되어드립니다.</p>
         </div>
         <div class="footer-info">
-          <div><strong>상호</strong> 명륜세무회계</div>
-          <div><strong>대표자</strong> 전창로 세무사</div>
-          <div><strong>사업자등록번호</strong> 890-57-00386</div>
-          <div><strong>주소</strong> 경기 고양시 덕양구 도래울로 110 4층 409호</div>
-          <div><strong>연락처</strong> 031-8027-2888 / tg@myrytax.com</div>
+          <div class="fi-row"><strong>상호</strong><span class="fi-val">명륜세무회계</span></div>
+          <div class="fi-row"><strong>대표자</strong><span class="fi-val">전창로 세무사</span></div>
+          <div class="fi-row"><strong>사업자등록번호</strong><span class="fi-val">890-57-00386</span></div>
+          <div class="fi-row"><strong>주소</strong><span class="fi-val">경기 고양시 덕양구 도래울로 110 4층 409호</span></div>
+          <div class="fi-row"><strong>연락처</strong><span class="fi-val">031-8027-2888 / tg@myrytax.com</span></div>
         </div>
       </div>
       <div class="footer-bottom">
@@ -841,8 +850,14 @@
       e.preventDefault();
       const name = document.getElementById('name').value.trim();
       const phone = document.getElementById('phone').value.trim();
-      if (!name || !phone) {
-        alert('이름과 연락처를 입력해 주세요.');
+      if (!name) {
+        alert('이름을 입력해 주세요.');
+        document.getElementById('name').focus();
+        return;
+      }
+      if (!phone) {
+        alert('연락처를 입력해 주세요.');
+        document.getElementById('phone').focus();
         return;
       }
       const originalBtn = submitBtn.innerHTML;
