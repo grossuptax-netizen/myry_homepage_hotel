@@ -2,7 +2,7 @@ module.exports = {
   apps: [{
     name: 'webapp',
     script: 'npx',
-    args: 'http-server . -p 3000 -a 0.0.0.0 -c-1',
+    args: 'wrangler pages dev dist --ip 0.0.0.0 --port 3000',
     cwd: '/home/user/webapp',
     env: { NODE_ENV: 'development' },
     watch: false,
