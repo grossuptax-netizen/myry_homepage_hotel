@@ -721,6 +721,12 @@
           <h3>무료 상담 신청</h3>
           <p class="form-sub">아래 정보를 남겨주시면 담당자가 빠르게 연락드립니다.</p>
           <form id="consultForm" action="https://formspree.io/f/maqgerea" method="POST">
+            <!-- 봇 함정(Honeypot): 실제 사용자에게는 보이지 않는 필드.
+                 봇은 모든 입력칸을 자동으로 채우므로, 이 칸이 채워지면 스팸으로 간주. -->
+            <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
+              <label for="website-url">웹사이트 주소 (입력하지 마세요)</label>
+              <input type="text" id="website-url" name="website" tabindex="-1" autocomplete="off" />
+            </div>
             <div class="form-group">
               <label for="name">이름<span class="req">*</span></label>
               <input type="text" id="name" name="이름" placeholder="성함을 입력해 주세요" required />
@@ -761,7 +767,7 @@
           <div class="fi-row"><strong>대표자</strong><span class="fi-val">전창로 세무사</span></div>
           <div class="fi-row"><strong>사업자등록번호</strong><span class="fi-val">890-57-00386</span></div>
           <div class="fi-row"><strong>주소</strong><span class="fi-val">경기 고양시 덕양구 도래울로 110 4층 409호</span></div>
-          <div class="fi-row"><strong>연락처</strong><span class="fi-val">031-8027-2888 / tg@myrytax.com</span></div>
+          <div class="fi-row"><strong>연락처</strong><span class="fi-val">031-8027-2888 / <span id="em-addr" data-u="gt" data-d="zlelgnk.pbz" data-o="&#64;"></span></span></div>
         </div>
       </div>
       <div class="footer-bottom">
@@ -848,6 +854,15 @@
     const submitBtn = document.getElementById('consultSubmit');
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+      // 봇 함정 검사: 보이지 않는 필드가 채워졌다면 봇으로 판단.
+      // 봇에게는 "성공"인 척하면서 실제로는 전송하지 않음 (봇이 우회 방식을 찾지 못하게).
+      const honeypot = document.getElementById('website-url');
+      if (honeypot && honeypot.value.trim() !== '') {
+        form.reset();
+        form.style.display = 'none';
+        formSuccess.style.display = 'block';
+        return; // 실제 전송 중단
+      }
       const name = document.getElementById('name').value.trim();
       const phone = document.getElementById('phone').value.trim();
       if (!name) {
@@ -889,6 +904,31 @@
     document.getElementById('kakaoChannel').setAttribute('href', 'http://pf.kakao.com/_QLxaPxj/chat');
     document.getElementById('kakaoChannel').setAttribute('target', '_blank');
     document.getElementById('kakaoChannel').setAttribute('rel', 'noopener');
+
+    // ===== 이메일 주소 난독화 해제 (스팸봇 차단) =====
+    // HTML 소스에는 ROT13으로 인코딩된 값만 있어 봇이 수집하지 못함.
+    // 실제 방문자 화면에서만 JavaScript로 복호화하여 표시 + 클릭 시 메일 작성.
+    (function () {
+      function rot13(str) {
+        return str.replace(/[a-zA-Z]/g, function (ch) {
+          const code = ch.charCodeAt(0);
+          const base = code <= 90 ? 65 : 97; // A=65, a=97
+          return String.fromCharCode(((code - base + 13) % 26) + base);
+        });
+      }
+      const emEl = document.getElementById('em-addr');
+      if (emEl) {
+        const user = rot13(emEl.dataset.u || '');   // gt -> tg
+        const domain = rot13(emEl.dataset.d || ''); // ROT13 인코딩된 도메인 복호화
+        const full = user + '@' + domain;           // 실제 이메일 주소 조립
+        emEl.textContent = full;
+        emEl.style.cursor = 'pointer';
+        emEl.title = '클릭하면 메일 작성이 열립니다';
+        emEl.addEventListener('click', function () {
+          window.location.href = 'mailto:' + full;
+        });
+      }
+    })();
   </script>
 </body>
 </html>
