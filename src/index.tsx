@@ -7,4 +7,9 @@ const app = new Hono()
 // 루트는 인라인된 index.html 반환
 app.get('/', (c) => c.html(indexHtml))
 
+// Google Search Console 사이트 소유권 확인 파일 (정확한 경로에서 원문 그대로 반환)
+app.get('/googlef151711fc2c45d18.html', (c) =>
+  c.text('google-site-verification: googlef151711fc2c45d18.html')
+)
+
 export default app
