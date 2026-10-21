@@ -9,6 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  <!-- 게시판 글꼴 (나눔고딕·나눔명조·나눔손글씨): 글에 쓰인 글자만 내려받음 -->
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Pen+Script&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
@@ -636,10 +638,47 @@
     .post-detail .post-body li { margin-bottom: 0.3em; }
     .post-detail .post-body h1, .post-detail .post-body h2, .post-detail .post-body h3 { color: var(--plum); margin: 1em 0 0.5em; line-height: 1.3; }
     .post-detail .post-body a { color: var(--gold-dark); text-decoration: underline; }
-    .post-detail .post-body blockquote { border-left: 4px solid var(--gold-light); margin: 0 0 1em; padding: 4px 0 4px 16px; color: #555; }
+    /* 인용구 (글쓰기·상세 공통): 네이버 기본 인용구처럼 테두리 상자 + 위아래 큰따옴표 + 가운데 정렬 + 나눔명조.
+       편집기는 줄마다 <blockquote> 를 따로 만들므로, 이어진 줄을 한 상자로 보이게 첫 줄/마지막 줄에만 위·아래 테두리와 따옴표 */
+    .post-detail .post-body blockquote, .post-form .ql-editor blockquote {
+      margin: 0; padding: 2px 40px; border: 1px solid #e2dfe6; border-top: none; border-bottom: none;
+      background: #fff; color: #555; text-align: center; font-family: 'Nanum Myeongjo', serif; line-height: 1.8;
+    }
+    .post-detail .post-body blockquote:not(blockquote + blockquote),
+    .post-form .ql-editor blockquote:not(blockquote + blockquote) {
+      margin-top: 1.4em; padding-top: 20px; border-top: 1px solid #e2dfe6;
+    }
+    .post-detail .post-body blockquote:not(:has(+ blockquote)),
+    .post-form .ql-editor blockquote:not(:has(+ blockquote)) {
+      margin-bottom: 1.4em; padding-bottom: 20px; border-bottom: 1px solid #e2dfe6;
+    }
+    .post-detail .post-body blockquote:not(blockquote + blockquote)::before,
+    .post-form .ql-editor blockquote:not(blockquote + blockquote)::before { content: '\201C'; margin-bottom: 12px; }
+    .post-detail .post-body blockquote:not(:has(+ blockquote))::after,
+    .post-form .ql-editor blockquote:not(:has(+ blockquote))::after { content: '\201D'; margin-top: 14px; }
+    .post-detail .post-body blockquote::before, .post-detail .post-body blockquote::after,
+    .post-form .ql-editor blockquote::before, .post-form .ql-editor blockquote::after {
+      display: block; height: 0.45em; font-family: Georgia, 'Nanum Myeongjo', serif; font-size: 3.4rem;
+      font-weight: 700; line-height: 1; color: #bcb8c0; text-align: center; pointer-events: none;
+    }
+    /* 글꼴 (붙여넣기·글꼴 메뉴) */
+    .ql-font-nanumgothic { font-family: 'Nanum Gothic', 'Noto Sans KR', sans-serif; }
+    .ql-font-nanummyeongjo { font-family: 'Nanum Myeongjo', serif; }
+    .ql-font-nanumpen { font-family: 'Nanum Pen Script', cursive; }
     .post-detail .post-body .ql-align-center { text-align: center; }
     .post-detail .post-body .ql-align-right { text-align: right; }
     .post-detail .post-body .ql-align-justify { text-align: justify; }
+    /* 표 (글쓰기 화면·상세 화면 공통) */
+    .post-form .ql-editor table, .post-detail .post-body table {
+      width: 100%; border-collapse: collapse; table-layout: fixed; margin: 14px 0 18px;
+    }
+    .post-form .ql-editor td, .post-detail .post-body td {
+      border: 1px solid #d9d2e3; padding: 10px 12px; vertical-align: middle;
+      word-break: keep-all; overflow-wrap: anywhere; line-height: 1.6;
+    }
+    .post-form .ql-editor tr:first-child td, .post-detail .post-body tr:first-child td {
+      background: #f6f3f9; color: var(--plum); font-weight: 700;
+    }
     .post-detail-actions { display: flex; gap: 10px; margin-top: 34px; padding-top: 24px; border-top: 1px solid var(--lavender); flex-wrap: wrap; }
 
     /* 초안 배지 */
@@ -673,15 +712,107 @@
     .post-form .ql-snow .ql-picker.ql-size .ql-picker-label::before,
     .post-form .ql-snow .ql-picker.ql-size .ql-picker-item::before { content: '기본 16px'; }
     .post-form .ql-snow .ql-picker.ql-size [data-value]::before { content: attr(data-value); }
-    .post-form .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="12px"]::before { font-size: 12px; }
-    .post-form .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="14px"]::before { font-size: 14px; }
+    .post-form .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="11px"]::before { font-size: 11px; }
+    .post-form .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="13px"]::before { font-size: 13px; }
+    .post-form .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="15px"]::before { font-size: 15px; }
     .post-form .ql-snow .ql-picker.ql-size .ql-picker-item:not([data-value])::before { font-size: 16px; }
-    .post-form .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="18px"]::before { font-size: 18px; }
-    .post-form .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="20px"]::before { font-size: 20px; }
+    .post-form .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="19px"]::before { font-size: 19px; }
     .post-form .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="24px"]::before { font-size: 24px; }
     .post-form .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="28px"]::before { font-size: 28px; }
-    .post-form .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="32px"]::before { font-size: 32px; }
+    .post-form .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="30px"]::before { font-size: 30px; }
+    .post-form .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="34px"]::before { font-size: 34px; }
+    .post-form .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="38px"]::before { font-size: 38px; }
+    /* 글꼴 메뉴 */
+    .post-form .ql-snow .ql-picker.ql-font { width: 112px; }
+    .post-form .ql-snow .ql-picker.ql-font .ql-picker-label::before,
+    .post-form .ql-snow .ql-picker.ql-font .ql-picker-item::before { content: '기본 글꼴'; }
+    .post-form .ql-snow .ql-picker.ql-font [data-value="nanumgothic"]::before { content: '나눔고딕'; font-family: 'Nanum Gothic', sans-serif; }
+    .post-form .ql-snow .ql-picker.ql-font [data-value="nanummyeongjo"]::before { content: '나눔명조'; font-family: 'Nanum Myeongjo', serif; }
+    .post-form .ql-snow .ql-picker.ql-font [data-value="nanumpen"]::before { content: '나눔손글씨'; font-family: 'Nanum Pen Script', cursive; font-size: 1.15em; }
     .editor-hint { margin-top: 8px; font-size: 0.82rem; color: #9a8fb0; }
+    /* 붙여넣기에서 사진을 뺐을 때 안내 */
+    .editor-notice {
+      display: none; align-items: flex-start; gap: 10px; margin-top: 10px; padding: 12px 14px;
+      background: #fff8e8; border: 1px solid var(--gold-light); border-radius: 10px;
+      color: #7a5a1c; font-size: 0.88rem; line-height: 1.6;
+    }
+    .editor-notice.on { display: flex; }
+    .editor-notice i { margin-top: 4px; color: var(--gold-dark); }
+    .editor-notice span { flex: 1; }
+    .editor-notice button { background: none; border: none; cursor: pointer; color: #7a5a1c; font-size: 1.2rem; line-height: 1; padding: 0 2px; }
+    /* '사진 자리' 표시 (붙여넣기에서 뺀 사진 위치) */
+    .photo-slot {
+      position: relative; display: flex; align-items: center; justify-content: center; gap: 10px;
+      margin: 10px 0; padding: 24px 44px; border: 2px dashed var(--gold); border-radius: 12px;
+      background: #fffaf0; color: var(--gold-dark); font-size: 0.95rem; font-weight: 700;
+      line-height: 1.5; text-align: center; cursor: pointer; user-select: none; transition: background 0.2s;
+    }
+    .photo-slot:hover { background: #fff1d6; }
+    .photo-slot i { font-size: 1.2rem; }
+    .photo-slot-remove {
+      position: absolute; top: 8px; right: 10px; width: 26px; height: 26px; border-radius: 50%;
+      border: none; background: rgba(176,142,69,0.15); color: var(--gold-dark);
+      font-size: 1.1rem; line-height: 26px; cursor: pointer; padding: 0;
+    }
+    .photo-slot-remove:hover { background: var(--gold-dark); color: #fff; }
+    .post-detail .photo-slot { cursor: default; }
+    .post-detail .photo-slot-remove { display: none; }
+    /* 링크 카드 (네이버 링크 카드처럼: 왼쪽 썸네일 + 제목·설명·주소) */
+    .link-card { position: relative; max-width: 720px; margin: 14px auto; }
+    .post-detail .post-body a.link-card-inner, .post-form .ql-editor a.link-card-inner {
+      display: flex; align-items: stretch; min-height: 112px; background: #fff; border: 1px solid #d9d5de;
+      color: inherit; text-decoration: none; text-align: left; transition: box-shadow 0.2s;
+    }
+    .post-detail .post-body a.link-card-inner:hover { box-shadow: 0 6px 18px rgba(61,43,86,0.10); }
+    .link-card-thumb {
+      position: relative; flex: 0 0 114px; display: flex; align-items: center; justify-content: center;
+      overflow: hidden; background: #f6f3f9; border-right: 1px solid #e6e2ea;
+    }
+    .post-detail .post-body .link-card-thumb img, .post-form .ql-editor .link-card-thumb img {
+      width: 100%; height: 100%; max-width: none; margin: 0; border-radius: 0; object-fit: contain; padding: 6px; background: #fff;
+    }
+    .link-card-thumb i { font-size: 1.6rem; color: var(--plum-light); }
+    .link-card-body { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; padding: 14px 18px; }
+    .link-card-title { font-size: 1rem; font-weight: 700; color: #222; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .link-card-desc { font-size: 0.88rem; color: #555; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .link-card-domain { font-size: 0.85rem; color: #1f9d55; }
+    .link-card-remove {
+      position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; border-radius: 50%; border: none; padding: 0;
+      background: rgba(61,43,86,0.08); color: var(--plum); font-size: 1rem; line-height: 24px; cursor: pointer;
+    }
+    .link-card-remove:hover { background: var(--plum); color: #fff; }
+    /* 글쓰기 화면 전용 '열어 보기' (오른쪽 아래) — 제목이 × 와 겹치지 않게 오른쪽 여백 */
+    .post-form .link-card-body { padding-right: 40px; }
+    .link-card-open {
+      position: absolute; bottom: 8px; right: 8px; height: 24px; padding: 0 10px; border-radius: 12px; border: none;
+      background: rgba(61,43,86,0.08); color: var(--plum); font-family: inherit; font-size: 0.72rem; font-weight: 700;
+      cursor: pointer; white-space: nowrap;
+    }
+    .link-card-open i { font-size: 0.65rem; margin-right: 2px; }
+    .link-card-open:hover { background: var(--gold-dark); color: #fff; }
+    .post-detail .link-card-remove, .post-detail .link-card-open { display: none; }
+    /* 글쓰기 화면: 썸네일 칸을 눌러 사진 올리기 */
+    .post-form .link-card-thumb { cursor: pointer; }
+    .post-form .link-card-thumb.is-empty::after {
+      content: '눌러서 썸네일 올리기'; position: absolute; left: 0; right: 0; bottom: 10px;
+      font-size: 0.66rem; color: var(--plum-light); text-align: center;
+    }
+    .post-form .link-card-thumb.is-empty i { margin-bottom: 14px; }
+    /* 툴바 링크 카드 버튼 + 주소 입력칸 */
+    .post-form .ql-snow.ql-toolbar button.ql-linkcard { color: var(--plum); font-size: 0.95rem; }
+    .post-form .ql-snow.ql-toolbar button.ql-linkcard:hover { color: var(--gold-dark); }
+    .linkcard-bar {
+      display: flex; align-items: center; gap: 8px; padding: 10px 12px; flex-wrap: wrap;
+      border: 1.5px solid var(--lavender); border-top: none; background: #fffaf0;
+    }
+    .linkcard-bar[hidden] { display: none; }
+    .linkcard-bar > i { color: var(--gold-dark); }
+    .linkcard-bar input {
+      flex: 1; min-width: 200px; border: 1.5px solid var(--lavender); border-radius: 8px;
+      padding: 9px 12px; font-family: inherit; font-size: 0.95rem; background: #fff;
+    }
+    .linkcard-bar input:focus { outline: none; border-color: var(--gold); }
+    .linkcard-bar .btn-board { padding: 9px 14px; font-size: 0.85rem; }
     .post-form .ql-snow.ql-toolbar button:hover .ql-stroke,
     .post-form .ql-snow.ql-toolbar button.ql-active .ql-stroke { stroke: var(--gold-dark); }
     .post-form .ql-snow.ql-toolbar button:hover .ql-fill,
@@ -713,6 +844,12 @@
       .cat-filter::-webkit-scrollbar { display: none; }
       .cat-btn { font-size: 0.86rem; padding: 8px 15px; }
       .post-list { gap: 16px; }
+      .post-form .ql-editor td, .post-detail .post-body td { padding: 8px 6px; font-size: 0.86rem; }
+      .post-form .ql-editor blockquote, .post-detail .post-body blockquote { padding-left: 18px; padding-right: 18px; }
+      .link-card-thumb { flex-basis: 84px; }
+      .link-card-body { padding: 10px 12px; }
+      .link-card-title { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+      .link-card-desc { -webkit-line-clamp: 1; }
     }
   </style>
 </head>
@@ -1080,8 +1217,16 @@
           </div>
           <div class="field">
             <label>내용</label>
+            <!-- 링크 카드 만들기: 툴바 버튼을 누르면 툴바 바로 아래에 나타남 -->
+            <div class="linkcard-bar" id="linkCardBar" hidden>
+              <i class="fas fa-link" aria-hidden="true"></i>
+              <input type="url" id="linkCardInput" placeholder="링크 주소를 붙여넣으세요 (예: https://jung6tax.com)" autocomplete="off" />
+              <button type="button" class="btn-board btn-board-gold" id="linkCardMake">카드 만들기</button>
+              <button type="button" class="btn-board btn-board-outline" id="linkCardCancel">취소</button>
+            </div>
             <div id="quillEditor"></div>
-            <p class="editor-hint"><i class="fas fa-circle-info" aria-hidden="true"></i> 글씨 크기는 바꿀 글자를 드래그해 선택한 뒤, 맨 왼쪽 ‘기본 16px’ 메뉴에서 고르세요.</p>
+            <div class="editor-notice" id="editorNotice" role="status"></div>
+            <p class="editor-hint"><i class="fas fa-circle-info" aria-hidden="true"></i> 글꼴·글씨 크기는 바꿀 글자를 드래그해 선택한 뒤 ‘기본 글꼴’·‘기본 16px’ 메뉴에서 고르세요. 네이버 등에서 복사한 글은 글꼴·크기·색·형광펜·표를 그대로 가져옵니다.</p>
             <div id="editorUploading"><i class="fas fa-spinner fa-spin"></i> 사진 업로드 중...</div>
           </div>
           <div class="post-form-actions">
@@ -1299,10 +1444,19 @@
       const btnSave       = document.getElementById('btnSave');
       const btnDraft      = document.getElementById('btnDraft');
       const editorUploading = document.getElementById('editorUploading');
+      const editorNotice  = document.getElementById('editorNotice');
+      const linkCardBar   = document.getElementById('linkCardBar');
+      const linkCardInput = document.getElementById('linkCardInput');
+      const linkCardMake  = document.getElementById('linkCardMake');
+      const linkCardCancel= document.getElementById('linkCardCancel');
 
       const STORAGE_BUCKET = 'post-images';   // Supabase Storage 버킷명
-      // 글쓰기 글씨 크기 단계 (false = 기본 16px). 바꾸면 CSS 의 .ql-size 표시 규칙도 함께 맞출 것
-      const FONT_SIZES = ['12px', '14px', false, '18px', '20px', '24px', '28px', '32px'];
+      // 글쓰기 글씨 크기 단계: 네이버 블로그와 같은 단계 (false = 기본 16px).
+      // 바꾸면 CSS 의 .ql-size 표시 규칙도 함께 맞출 것
+      const FONT_SIZES = ['11px', '13px', '15px', false, '19px', '24px', '28px', '30px', '34px', '38px'];
+      const FONT_SIZE_PX = FONT_SIZES.map(s => (s ? parseInt(s, 10) : 16));
+      // 글꼴 (false = 기본 Noto Sans KR). 클래스 ql-font-이름 으로 저장, CSS 에 글꼴 지정
+      const FONT_FAMILIES = [false, 'nanumgothic', 'nanummyeongjo', 'nanumpen'];
 
       // 카테고리 목록 (필터 버튼·글쓰기 드롭다운 공통, posts.category 에 이 이름 그대로 저장)
       // name: 화면 표시·DB 저장값 / en: 기본 카드 영문 표기 / icon: Font Awesome 아이콘
@@ -1334,66 +1488,470 @@
         const SizeStyle = Quill.import('attributors/style/size');
         SizeStyle.whitelist = FONT_SIZES.filter(Boolean);
         Quill.register(SizeStyle, true);
+        const FontClass = Quill.import('formats/font');
+        FontClass.whitelist = FONT_FAMILIES.filter(Boolean);
+        Quill.register(FontClass, true);
+        registerCustomBlots();
         quill = new Quill('#quillEditor', {
           theme: 'snow',
           placeholder: '내용을 입력하세요. 사진은 툴바의 카메라 버튼으로 추가할 수 있습니다.',
           modules: {
             toolbar: {
               container: [
-                [{ size: FONT_SIZES }],
+                [{ font: FONT_FAMILIES }, { size: FONT_SIZES }],
                 ['bold', 'italic', 'underline'],
-                [{ color: [] }],
+                [{ color: [] }, { background: [] }],
                 [{ align: [] }],
-                [{ list: 'ordered' }, { list: 'bullet' }],
-                ['image'],
+                [{ list: 'ordered' }, { list: 'bullet' }, 'blockquote'],
+                ['image', 'linkcard'],
                 ['clean']
               ],
-              handlers: { image: imageHandler }
+              handlers: { image: imageHandler, linkcard: openLinkCardBar }
             },
             // 붙여넣기 시 서식 유지 (clipboard 기본 동작 사용)
-            clipboard: { matchVisual: false }
+            clipboard: { matchVisual: false },
+            // 표 (붙여넣은 표의 칸 구조 유지)
+            table: true
           }
         });
         // 툴바 버튼에 마우스를 올리면 한글 설명 표시
         const tips = {
-          '.ql-size': '글씨 크기 (글자를 드래그해 선택한 뒤 고르세요)', '.ql-bold': '굵게', '.ql-italic': '기울임',
-          '.ql-underline': '밑줄', '.ql-color': '글자 색', '.ql-align': '정렬',
-          '.ql-list[value="ordered"]': '번호 목록', '.ql-list[value="bullet"]': '글머리 목록',
-          '.ql-image': '사진 넣기', '.ql-clean': '서식 지우기'
+          '.ql-font': '글꼴', '.ql-size': '글씨 크기 (글자를 드래그해 선택한 뒤 고르세요)', '.ql-bold': '굵게', '.ql-italic': '기울임',
+          '.ql-underline': '밑줄', '.ql-color': '글자 색', '.ql-background': '형광펜', '.ql-align': '정렬',
+          '.ql-list[value="ordered"]': '번호 목록', '.ql-list[value="bullet"]': '글머리 목록', '.ql-blockquote': '인용구',
+          '.ql-image': '사진 넣기', '.ql-linkcard': '링크 카드 넣기 (주소를 넣으면 제목·로고가 자동으로)', '.ql-clean': '서식 지우기'
         };
         const toolbarEl = quill.getModule('toolbar').container;
         Object.entries(tips).forEach(([sel, tip]) =>
           toolbarEl.querySelectorAll(sel).forEach(el => { el.title = tip; }));
+        toolbarEl.querySelector('.ql-linkcard').innerHTML = '<i class="fas fa-link" aria-hidden="true"></i>';
+        toolbarEl.after(linkCardBar);   // 주소 입력칸을 툴바 바로 아래로
+        // 붙여넣기는 직접 처리 (Quill 기본 처리보다 먼저 실행되도록 capture 단계)
+        quill.root.addEventListener('paste', onEditorPaste, true);
+        quill.root.addEventListener('click', onPhotoSlotClick);
+        quill.root.addEventListener('click', onLinkCardClick);
         return quill;
+      }
+
+      // --- 편집기 전용 블록: '사진 자리' 표시, 링크 카드 ---
+      function registerCustomBlots() {
+        const BlockEmbed = Quill.import('blots/block/embed');
+
+        // 링크 카드: 썸네일 + 제목 + 설명 + 주소 (네이버 링크 카드를 붙여넣으면 만들어짐)
+        class LinkCard extends BlockEmbed {
+          static create(value) {
+            const node = super.create(value);
+            const v = cleanCardData(value);
+            node.setAttribute('contenteditable', 'false');
+            node.setAttribute('data-card', JSON.stringify(v));
+            node.innerHTML = renderLinkCard(v);
+            fallbackBrokenCardThumbs(node);
+            return node;
+          }
+          static value(node) {
+            try { return JSON.parse(node.getAttribute('data-card') || '{}'); } catch (e) { return {}; }
+          }
+        }
+        LinkCard.blotName = 'linkCard';
+        LinkCard.tagName = 'DIV';
+        LinkCard.className = 'link-card';
+        Quill.register(LinkCard, true);
+
+        // '사진 자리': 붙여넣기에서 뺀 네이버 사진이 있던 곳. 누르면 그 자리에 사진 올리기
+        class PhotoSlot extends BlockEmbed {
+          static create(value) {
+            const node = super.create(value);
+            node.setAttribute('contenteditable', 'false');
+            node.setAttribute('data-slot', value || '');
+            node.innerHTML = `<i class="fas fa-camera" aria-hidden="true"></i>` +
+              `<span>사진 자리 ${escapeHtml(value || '')} · 눌러서 사진 올리기</span>` +
+              `<button type="button" class="photo-slot-remove" title="사진 자리 표시 지우기" aria-label="사진 자리 표시 지우기">&times;</button>`;
+            return node;
+          }
+          static value(node) { return node.getAttribute('data-slot') || ''; }
+        }
+        PhotoSlot.blotName = 'photoSlot';
+        PhotoSlot.tagName = 'DIV';
+        PhotoSlot.className = 'photo-slot';
+        Quill.register(PhotoSlot, true);
+      }
+
+      // --- 링크 카드 그리기 ---
+      const httpUrl = (u) => (/^https?:\/\//i.test(String(u || '').trim()) ? String(u).trim() : '');
+      function cleanCardData(v) {
+        v = v || {};
+        return {
+          url: httpUrl(v.url), title: String(v.title || ''), desc: String(v.desc || ''),
+          domain: String(v.domain || ''), image: httpUrl(v.image)
+        };
+      }
+      function renderLinkCard(v) {
+        const thumb = v.image
+          ? `<span class="link-card-thumb"><img src="${escapeHtml(v.image)}" alt="" loading="lazy" /></span>`
+          : `<span class="link-card-thumb is-empty"><i class="fas fa-link" aria-hidden="true"></i></span>`;
+        return `<a class="link-card-inner" href="${escapeHtml(v.url || '#')}" target="_blank" rel="noopener noreferrer">${thumb}` +
+          `<span class="link-card-body"><strong class="link-card-title">${escapeHtml(v.title || v.domain || v.url)}</strong>` +
+          (v.desc ? `<span class="link-card-desc">${escapeHtml(v.desc)}</span>` : '') +
+          `<span class="link-card-domain">${escapeHtml(v.domain || '')}</span></span></a>` +
+          `<button type="button" class="link-card-open" title="새 탭에서 이 주소 열어 보기"><i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i> 열어 보기</button>` +
+          `<button type="button" class="link-card-remove" title="링크 카드 지우기" aria-label="링크 카드 지우기">&times;</button>`;
+      }
+      // --- 주소로 링크 카드 만들기 (툴바 버튼) ---
+      let linkCardRange = null;   // 카드를 넣을 위치
+      function openLinkCardBar() {
+        if (!isAdmin()) { alert('운영자만 사용할 수 있습니다.'); return; }
+        linkCardRange = quill.getSelection(true);
+        linkCardBar.hidden = false;
+        linkCardInput.value = '';
+        linkCardInput.focus();
+      }
+      function closeLinkCardBar() {
+        linkCardBar.hidden = true;
+        linkCardInput.value = '';
+      }
+      async function makeLinkCard() {
+        let url = linkCardInput.value.trim();
+        if (!url) { linkCardInput.focus(); return; }
+        if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+        let domain = '';
+        try { domain = new URL(url).hostname.replace(/^www\./, ''); }
+        catch (e) { alert('링크 주소를 확인해 주세요.'); linkCardInput.focus(); return; }
+
+        const original = linkCardMake.innerHTML;
+        linkCardMake.disabled = true;
+        linkCardMake.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 가져오는 중...';
+        let info = null;
+        try {
+          const { data } = await sb.auth.getSession();
+          const token = data && data.session ? data.session.access_token : '';
+          const res = await fetch('/api/link-preview?url=' + encodeURIComponent(url), { headers: { Authorization: 'Bearer ' + token } });
+          const json = await res.json().catch(() => null);
+          if (res.ok && json && !json.error) info = json;
+          else console.warn('[게시판] 링크 정보 가져오기 실패:', res.status, json);
+        } catch (err) {
+          console.error('[게시판] 링크 정보 가져오기 실패:', err);
+        } finally {
+          linkCardMake.disabled = false;
+          linkCardMake.innerHTML = original;
+        }
+
+        const image = info && info.image && !isBlockedImage(info.image) ? info.image : '';
+        const card = cleanCardData({ url, domain, title: (info && info.title) || domain, desc: (info && info.desc) || '', image });
+        const index = linkCardRange ? linkCardRange.index : Math.max(0, quill.getLength() - 1);
+        quill.insertEmbed(index, 'linkCard', card, 'user');
+        quill.setSelection(index + 1, 0, 'silent');
+        closeLinkCardBar();
+        if (!info) {
+          showEditorNotice('사이트 정보를 가져오지 못해 주소만 넣은 카드로 만들었습니다. 썸네일 칸을 눌러 사진을 올릴 수 있어요.');
+        } else if (!image) {
+          showEditorNotice('이 사이트는 대표 이미지를 가져올 수 없어 썸네일이 비어 있습니다. 썸네일 칸을 눌러 사진을 올려 주세요.');
+        }
+      }
+      linkCardMake.addEventListener('click', makeLinkCard);
+      linkCardCancel.addEventListener('click', closeLinkCardBar);
+      linkCardInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); makeLinkCard(); }
+        if (e.key === 'Escape') { e.preventDefault(); closeLinkCardBar(); }
+      });
+
+      // 썸네일을 못 불러오면 링크 아이콘으로
+      function fallbackBrokenCardThumbs(root) {
+        root.querySelectorAll('.link-card-thumb img').forEach(img => img.addEventListener('error', () => {
+          const t = img.parentElement;
+          t.classList.add('is-empty');
+          t.innerHTML = '<i class="fas fa-link" aria-hidden="true"></i>';
+        }));
+      }
+      // 편집 중 링크 카드: 이동하지 않음 / '열어 보기'로 새 탭에서 확인 / × 로 지우기 / 썸네일 칸을 누르면 썸네일 사진 올리기
+      function onLinkCardClick(e) {
+        const card = e.target.closest('.link-card');
+        if (!card) return;
+        e.preventDefault();
+        const blot = Quill.find(card);
+        if (!blot) return;
+        if (e.target.closest('.link-card-open')) {
+          const url = httpUrl(blot.constructor.value(card).url);
+          if (url) window.open(url, '_blank', 'noopener');
+          else alert('이 카드에는 열 수 있는 주소가 없습니다.');
+          return;
+        }
+        if (e.target.closest('.link-card-remove')) {
+          quill.deleteText(quill.getIndex(blot), 1, 'user');
+          return;
+        }
+        if (!e.target.closest('.link-card-thumb')) return;
+        if (!isAdmin()) { alert('운영자만 사진을 업로드할 수 있습니다.'); return; }
+        const data = blot.constructor.value(card);
+        pickImageFiles(async (files) => {
+          editorUploading.classList.add('on');
+          let url = null;
+          try { url = await uploadImageFile(files[0]); } finally { editorUploading.classList.remove('on'); }
+          if (!url) return;
+          const index = quill.getIndex(blot);
+          quill.deleteText(index, 1, 'user');
+          quill.insertEmbed(index, 'linkCard', { ...data, image: url }, 'user');
+        });
+      }
+      function onPhotoSlotClick(e) {
+        const slot = e.target.closest('.photo-slot');
+        if (!slot) return;
+        e.preventDefault();
+        const blot = Quill.find(slot);
+        if (!blot) return;
+        if (e.target.closest('.photo-slot-remove')) {
+          quill.deleteText(quill.getIndex(blot), 1, 'user');
+          return;
+        }
+        if (!isAdmin()) { alert('운영자만 사진을 업로드할 수 있습니다.'); return; }
+        const label = slot.getAttribute('data-slot') || '';
+        pickImageFiles(async (files) => {
+          const index = quill.getIndex(blot);   // 파일을 고르는 사이 위치가 바뀌었을 수 있어 다시 계산
+          quill.deleteText(index, 1, 'user');
+          quill.setSelection(index, 0, 'silent');
+          const done = await uploadImages(files);
+          if (!done) quill.insertEmbed(index, 'photoSlot', label, 'user');   // 한 장도 못 올렸으면 표시 되살림
+        });
+      }
+
+      // --- 붙여넣기 정리 ---
+      // 외부(네이버 블로그·카페 등) 글의 글꼴·크기·글자색·형광펜·굵게·목록·정렬·표·인용구는 살리고,
+      // 편집기 버튼 같은 숨은 요소와 깨지는 네이버 사진만 걸러낸다.
+      const PASTE_KEEP_FORMATS = ['bold', 'italic', 'underline', 'strike', 'link', 'list', 'indent', 'align', 'table',
+        'blockquote', 'font', 'size', 'color', 'background'];
+      // 다른 사이트에서 불러오면 깨지는(외부 사용 차단) 사진 주소
+      const BLOCKED_IMAGE_HOSTS = /(^|\.)(pstatic\.net|naver\.net|naver\.com)$/i;
+      // 네이버 편집기 등에서 글과 함께 복사되는, 화면에 안 보이는 버튼·안내문
+      const PASTE_JUNK_SELECTOR = 'script, style, noscript, template, button, input, select, textarea, svg, iframe, object, [hidden], [aria-hidden="true"]';
+      // (네이버는 'AI 활용 설정' 같은 버튼을 div 로 만들어 클래스 이름으로만 구분됨: se-set-ai-mark-button 등)
+      const PASTE_JUNK_CLASS = /(^|[\s_-])(blind|placeholder|toolbar|button|control|controller|controlbar|context-menu|resizer|tooltip)([\s_-]|$)/i;
+
+      function isBlockedImage(src) {
+        try { return BLOCKED_IMAGE_HOSTS.test(new URL(src, location.href).hostname); }
+        catch (e) { return false; }
+      }
+      // 네이버 썸네일 중계 주소(dthumb-phinf.pstatic.net/?src="원본주소") → 원본 주소 (http 는 https 로)
+      function unwrapProxyImage(src) {
+        try {
+          const u = new URL(src, location.href);
+          const inner = (u.searchParams.get('src') || '').replace(/^"+|"+$/g, '');
+          if (/pstatic\.net$/i.test(u.hostname) && httpUrl(inner)) return inner.replace(/^http:\/\//i, 'https://');
+        } catch (e) {}
+        return src;
+      }
+      // 네이버 링크 카드(.se-module-oglink) → <div class="link-card" data-card="…"> (편집기 LinkCard 로 인식됨)
+      // 글쓰기 화면에서 복사하면 카드 안에 주소가 없어서, 바로 앞쪽 링크 중 도메인이 같은 것을 씀
+      function convertNaverLinkCard(doc, mod) {
+        const text = (sel) => { const e = mod.querySelector(sel); return e ? e.textContent.trim().replace(/\s+/g, ' ') : ''; };
+        const title = text('.se-oglink-title');
+        const desc = text('.se-oglink-summary');
+        const domain = text('.se-oglink-url');
+        let url = httpUrl((mod.querySelector('a[href]') || { getAttribute: () => '' }).getAttribute('href'));
+        if (!url) {
+          const before = [...doc.body.querySelectorAll('a[href]')]
+            .filter(a => a.compareDocumentPosition(mod) & Node.DOCUMENT_POSITION_FOLLOWING);
+          const host = (a) => { try { return new URL(a.getAttribute('href')).hostname; } catch (e) { return ''; } };
+          const same = before.filter(a => domain && host(a).endsWith(domain.replace(/^www\./, '')));
+          const pick = same.pop();
+          url = pick ? pick.getAttribute('href') : (domain ? 'https://' + domain : '');
+        }
+        const img = mod.querySelector('img[src]');
+        let image = img ? unwrapProxyImage(img.getAttribute('src')) : '';
+        if (image && isBlockedImage(image)) image = '';   // 네이버 사진은 깨지므로 비워 두고 직접 올리게
+        const card = doc.createElement('div');
+        card.className = 'link-card';
+        card.setAttribute('data-card', JSON.stringify(cleanCardData({ url, title, desc, domain, image })));
+        (mod.closest('.se-component') || mod).replaceWith(card);
+      }
+      // 글꼴 이름(네이버 클래스 se-ff-… 또는 font-family) → 편집기 글꼴. 없으면 기본 글꼴
+      function matchFontFamily(name) {
+        const s = String(name || '').toLowerCase();
+        if (/myeongjo|명조|maruburi|마루부리|batang|바탕|궁서|(^|[^-])serif/.test(s)) return 'nanummyeongjo';
+        if (/pen|hipi|손글씨|handwrit|brush|붓/.test(s)) return 'nanumpen';
+        if (/gothic|고딕|square|스퀘어|dotum|돋움|gulim|굴림/.test(s)) return 'nanumgothic';
+        return null;
+      }
+      // 글씨 크기(px) → 편집기 크기 단계 중 가장 가까운 값. 16(기본)이면 null
+      function matchFontSize(px) {
+        if (!px || isNaN(px)) return null;
+        let best = 16;
+        FONT_SIZE_PX.forEach(s => { if (Math.abs(s - px) < Math.abs(best - px)) best = s; });
+        return best === 16 ? null : best + 'px';
+      }
+      // 붙여넣을 HTML 미리 손질: 숨은 버튼·안내문 제거, 네이버 정렬·글꼴·크기 클래스 → 편집기 서식, 인용구 → blockquote
+      function tidyPastedHtml(html) {
+        const doc = parseHtml(html);
+        doc.body.querySelectorAll(PASTE_JUNK_SELECTOR).forEach(el => el.remove());
+        doc.body.querySelectorAll('.se-cite.se-is-empty').forEach(el => el.remove());   // 비어 있는 인용구 출처
+        // 네이버 글쓰기 화면의 링크(<span class="se-link" data-href>) → 일반 링크(<a href>)
+        doc.body.querySelectorAll('.se-link[data-href]').forEach(span => {
+          const href = httpUrl(span.getAttribute('data-href'));
+          if (!href || span.closest('a')) return;
+          const a = doc.createElement('a');
+          a.setAttribute('href', href);
+          span.replaceWith(a);
+          a.appendChild(span);
+        });
+        // 네이버 링크 카드 → 편집기 링크 카드
+        doc.body.querySelectorAll('.se-module-oglink').forEach(mod => convertNaverLinkCard(doc, mod));
+        doc.body.querySelectorAll('[class], [style]').forEach(el => {
+          if (!doc.body.contains(el)) return;   // 이미 지운 요소 안쪽
+          const cls = el.getAttribute('class') || '';
+          const style = (el.getAttribute('style') || '').replace(/\s/g, '').toLowerCase();
+          if (PASTE_JUNK_CLASS.test(cls) || style.includes('display:none') || style.includes('visibility:hidden')) {
+            el.remove();
+            return;
+          }
+          const m = cls.match(/paragraph-align-(center|right|justify)\b/);
+          if (m) el.style.textAlign = m[1];
+          // 글꼴: 네이버 se-ff-nanummyeongjo 같은 클래스 또는 font-family
+          const ff = (cls.match(/\bse-ff-([\w-]+)/) || [])[1] || el.style.fontFamily;
+          if (ff) {
+            const font = matchFontFamily(ff);
+            el.style.fontFamily = '';
+            if (font) el.classList.add('ql-font-' + font);
+          }
+          // 크기: 네이버 se-fs19 / se-fs-fs19 클래스 또는 font-size(px·pt)
+          const fsClass = cls.match(/\bse-fs-?(?:fs)?(\d+)\b/);
+          let px = fsClass ? parseInt(fsClass[1], 10) : NaN;
+          if (!fsClass && el.style.fontSize) {
+            const v = parseFloat(el.style.fontSize);
+            px = /pt$/.test(el.style.fontSize) ? v * 4 / 3 : (/px$/.test(el.style.fontSize) ? v : NaN);
+          }
+          if (fsClass || el.style.fontSize) el.style.fontSize = matchFontSize(px) || '';
+        });
+        // 인용구 출처(채워 넣은 경우)는 네이버처럼 작은 회색 글씨로
+        doc.body.querySelectorAll('.se-cite span').forEach(s => { s.style.fontSize = '13px'; s.style.color = '#999999'; });
+        // 네이버 인용구 상자 → 인용구(blockquote)
+        doc.body.querySelectorAll('.se-quotation-container').forEach(box => {
+          const bq = doc.createElement('blockquote');
+          while (box.firstChild) bq.appendChild(box.firstChild);
+          box.replaceWith(bq);
+        });
+        doc.body.querySelectorAll('[align]').forEach(el => {
+          const a = (el.getAttribute('align') || '').toLowerCase();
+          if (['center', 'right', 'justify'].includes(a) && !el.style.textAlign) el.style.textAlign = a;
+        });
+        // 버튼을 걷어내고 비어 버린 목록 항목·목록 제거 (빈 글머리표 방지)
+        doc.body.querySelectorAll('li').forEach(li => {
+          if (!li.textContent.trim() && !li.querySelector('img')) li.remove();
+        });
+        doc.body.querySelectorAll('ul, ol').forEach(list => { if (!list.querySelector('li')) list.remove(); });
+        return doc.body.innerHTML;
+      }
+      // '#232425', 'rgb(0,0,0)', 'white' 같은 색 → [r,g,b]
+      function colorToRgb(c) {
+        const s = String(c || '').trim().toLowerCase();
+        if (s === 'black') return [0, 0, 0];
+        if (s === 'white') return [255, 255, 255];
+        let m = s.match(/^#([0-9a-f]{3})$/);
+        if (m) return m[1].split('').map(h => parseInt(h + h, 16));
+        m = s.match(/^#([0-9a-f]{6})$/);
+        if (m) return [0, 2, 4].map(i => parseInt(m[1].substr(i, 2), 16));
+        m = s.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+        return m ? [+m[1], +m[2], +m[3]] : null;
+      }
+      // 네이버가 모든 글자에 붙이는 기본 검정 글자색·흰 바탕은 서식이 아니므로 버림 (사이트 기본색 사용)
+      const isDefaultInk = (c) => { const v = colorToRgb(c); return !!v && Math.max(...v) < 70 && Math.max(...v) - Math.min(...v) < 20; };
+      const isBlankPaper = (c) => { const v = colorToRgb(c); return String(c).trim() === 'transparent' || (!!v && Math.min(...v) >= 240); };
+
+      function cleanPastedDelta(delta, slotNoStart = 0) {
+        const Delta = Quill.import('delta');
+        const out = new Delta();
+        const rowIds = new Map();   // 붙여넣은 표의 행 번호 → 겹치지 않는 새 행 id
+        let removedImages = 0;
+        delta.ops.forEach(op => {
+          if (op.insert && typeof op.insert === 'object' && typeof op.insert.image === 'string') {
+            const src = unwrapProxyImage(op.insert.image);
+            if (isBlockedImage(src)) {
+              removedImages++;
+              out.insert({ photoSlot: String(slotNoStart + removedImages) });   // 사진이 있던 자리 표시
+              return;
+            }
+            if (src !== op.insert.image) op = { ...op, insert: { image: src } };   // 중계 주소 대신 원본 주소
+          }
+          const attrs = {};
+          Object.keys(op.attributes || {}).forEach(k => {
+            if (PASTE_KEEP_FORMATS.includes(k)) attrs[k] = op.attributes[k];
+          });
+          if (attrs.color && isDefaultInk(attrs.color)) delete attrs.color;
+          if (attrs.background && isBlankPaper(attrs.background)) delete attrs.background;
+          if (attrs.table != null) {
+            if (!rowIds.has(attrs.table)) rowIds.set(attrs.table, 'row-' + Math.random().toString(36).slice(2, 8));
+            attrs.table = rowIds.get(attrs.table);
+          }
+          out.insert(op.insert, Object.keys(attrs).length ? attrs : undefined);
+        });
+        return { delta: out, removedImages };
+      }
+      function onEditorPaste(e) {
+        const cd = e.clipboardData;
+        if (!cd) return;
+        const html = cd.getData('text/html');
+        const text = cd.getData('text/plain');
+        // 사진 파일만 붙여넣는 경우는 Quill 기본 동작 그대로
+        if (!html && !text) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const Delta = Quill.import('delta');
+        const range = quill.getSelection(true);
+        const slotsBefore = quill.root.querySelectorAll('.photo-slot').length;   // 사진 자리 번호를 이어서 매기기
+        const { delta, removedImages } = cleanPastedDelta(quill.clipboard.convert({ html: html && tidyPastedHtml(html), text }), slotsBefore);
+        quill.updateContents(new Delta().retain(range.index).delete(range.length).concat(delta), 'user');
+        quill.setSelection(range.index + delta.length(), 0, 'silent');
+        if (typeof quill.scrollSelectionIntoView === 'function') quill.scrollSelectionIntoView();
+        if (removedImages > 0) {
+          showEditorNotice(`네이버 등 외부에서 복사한 사진 ${removedImages}장은 이 사이트에서 보이지 않아 ‘사진 자리’ 표시로 바꿨습니다. ` +
+            `이미지를 다시 업로드하세요 — 표시를 누르면 바로 그 자리에 올라갑니다.`);
+        }
+      }
+      function showEditorNotice(msg) {
+        editorNotice.innerHTML = `<i class="fas fa-triangle-exclamation" aria-hidden="true"></i><span>${escapeHtml(msg)}</span>` +
+          `<button type="button" aria-label="안내 닫기">&times;</button>`;
+        editorNotice.querySelector('button').addEventListener('click', hideEditorNotice);
+        editorNotice.classList.add('on');
+      }
+      function hideEditorNotice() {
+        editorNotice.classList.remove('on');
+        editorNotice.innerHTML = '';
       }
 
       // --- 사진 업로드 핸들러 (Supabase Storage) ---
       function imageHandler() {
         if (!isAdmin()) { alert('운영자만 사진을 업로드할 수 있습니다.'); return; }
+        pickImageFiles(uploadImages);
+      }
+      // 사진 파일 고르기 창 열기 (여러 장 선택 가능)
+      function pickImageFiles(onPicked) {
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = 'image/*';
-        input.multiple = true; // 여러 장 선택 가능
-        input.onchange = async () => {
+        input.multiple = true;
+        input.onchange = () => {
           const files = Array.from(input.files || []);
-          if (!files.length) return;
-          editorUploading.classList.add('on');
-          try {
-            for (const file of files) {
-              await uploadAndInsertImage(file);
-            }
-          } finally {
-            editorUploading.classList.remove('on');
-          }
+          if (files.length) onPicked(files);
         };
         input.click();
       }
+      // 고른 사진을 커서 위치에 차례로 올려 넣기. 올린 장 수를 돌려줌
+      async function uploadImages(files) {
+        let done = 0;
+        editorUploading.classList.add('on');
+        try {
+          for (const file of files) {
+            if (await uploadAndInsertImage(file)) done++;
+          }
+        } finally {
+          editorUploading.classList.remove('on');
+        }
+        return done;
+      }
 
-      async function uploadAndInsertImage(file) {
+      // 사진 1장을 Supabase Storage 에 올리고 공개 주소를 돌려줌 (실패하면 알림 후 null)
+      async function uploadImageFile(file) {
         try {
           if (!file.type.startsWith('image/')) {
             alert('이미지 파일만 업로드할 수 있습니다: ' + file.name);
-            return;
+            return null;
           }
           const ext = (file.name.split('.').pop() || 'png').toLowerCase().replace(/[^a-z0-9]/g, '') || 'png';
           const path = `posts/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
@@ -1404,15 +1962,22 @@
           const { data: pub } = sb.storage.from(STORAGE_BUCKET).getPublicUrl(path);
           const url = pub && pub.publicUrl;
           if (!url) throw new Error('공개 URL 생성 실패');
-          // 현재 커서 위치에 이미지 삽입
-          const range = quill.getSelection(true);
-          const index = range ? range.index : quill.getLength();
-          quill.insertEmbed(index, 'image', url, 'user');
-          quill.setSelection(index + 1, 0);
+          return url;
         } catch (err) {
           console.error('[게시판] 이미지 업로드 실패:', err);
           alert('사진 업로드에 실패했습니다.\n운영자 로그인 상태와 Storage 설정을 확인해 주세요.\n(' + (err && err.message ? err.message : err) + ')');
+          return null;
         }
+      }
+      // 사진 1장을 올리고 현재 커서 위치에 넣기
+      async function uploadAndInsertImage(file) {
+        const url = await uploadImageFile(file);
+        if (!url) return false;
+        const range = quill.getSelection(true);
+        const index = range ? range.index : quill.getLength();
+        quill.insertEmbed(index, 'image', url, 'user');
+        quill.setSelection(index + 1, 0);
+        return true;
       }
 
       // --- 유틸 ---
@@ -1492,13 +2057,17 @@
       }
       // --- HTML 본문에서 순수 텍스트 미리보기 추출 ---
       function htmlToText(html) {
-        return (parseHtml(html).body.textContent || '').replace(/\s+/g, ' ').trim();
+        const body = parseHtml(html).body;
+        body.querySelectorAll('.photo-slot, .link-card').forEach(el => el.remove());   // '사진 자리'·링크 카드 글자는 미리보기에서 제외
+        // 문단·표 칸 사이가 붙어 보이지 않도록 공백 하나씩
+        body.querySelectorAll('p, li, td, th, br').forEach(el => el.append(' '));
+        return (body.textContent || '').replace(/\s+/g, ' ').trim();
       }
       // --- 본문에 이미지가 있는지 ---
       function hasImage(html) { return /<img\b/i.test(html || ''); }
       // --- 대표 이미지: 본문의 첫 번째 <img> 주소 ---
       function firstImageSrc(html) {
-        const img = parseHtml(html).querySelector('img[src]');
+        const img = [...parseHtml(html).querySelectorAll('img[src]')].find(i => !i.closest('.link-card'));   // 링크 카드 로고는 제외
         const src = img ? img.getAttribute('src').trim() : '';
         return /^(https?:\/\/|data:image\/)/i.test(src) ? src : '';
       }
@@ -1627,6 +2196,7 @@
         // Quill 로 작성한 HTML 을 그대로 렌더링 (ql-editor 클래스로 서식 보존)
         detailBody.className = 'post-body ql-editor';
         detailBody.innerHTML = post.content || '';
+        fallbackBrokenCardThumbs(detailBody);
         detailActions.style.display = isAdmin() ? 'flex' : 'none';
         showDetail();
       }
@@ -1640,6 +2210,8 @@
         fCategory.value = '';
         const q = ensureQuill();
         if (q) q.setContents([]); // 비우기
+        hideEditorNotice();
+        closeLinkCardBar();
         showForm();
       }
       // --- 수정 폼 (임시저장 글 이어쓰기 포함) ---
@@ -1655,6 +2227,8 @@
           q.setContents([]);
           q.clipboard.dangerouslyPasteHTML(0, currentPost.content || '');
         }
+        hideEditorNotice();
+        closeLinkCardBar();
         showForm();
       }
 
@@ -1681,6 +2255,13 @@
         // 정식 등록은 내용 필수, 임시저장은 내용 없어도 허용
         if (status === 'published' && editorIsEmpty()) {
           alert('내용을 입력해 주세요.'); return;
+        }
+        // 정식 등록 전에 '사진 자리' 표시가 남아 있으면 막음 (임시저장은 그대로 저장해 나중에 이어서)
+        const slotsLeft = q ? q.root.querySelectorAll('.photo-slot').length : 0;
+        if (status === 'published' && slotsLeft) {
+          alert(`사진 자리 ${slotsLeft}곳에 아직 사진이 없습니다.\n표시를 눌러 사진을 올리거나, 오른쪽 × 로 표시를 지운 뒤 등록해 주세요.`);
+          q.root.querySelector('.photo-slot').scrollIntoView({ block: 'center' });
+          return;
         }
 
         const btn = (status === 'draft') ? btnDraft : btnSave;
