@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     /* ===== 색상 변수 ===== */
     :root {
@@ -468,6 +469,126 @@
       .hero-cta .btn { width: 100%; justify-content: center; }
       .footer-top { flex-direction: column; }
     }
+
+    /* ===== 세무 정보 게시판 ===== */
+    #board-view { display: none; }
+    body.board-mode #board-view { display: block; }
+    body.board-mode > section:not(#board-view),
+    body.board-mode > footer.site-footer { display: none; }
+
+    .board-section {
+      padding: 130px 0 90px;
+      min-height: 70vh;
+      background: var(--ivory);
+    }
+    .board-head {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      flex-wrap: wrap; gap: 20px; margin-bottom: 14px;
+    }
+    .board-head h2 {
+      font-size: clamp(1.6rem, 3.4vw, 2.3rem); font-weight: 900; color: var(--plum);
+      line-height: 1.2;
+    }
+    .board-head h2 .accent { color: var(--gold-dark); }
+    .board-sub { margin-top: 8px; color: #6b6b6b; font-size: 0.97rem; }
+    .board-divider { height: 3px; width: 60px; background: var(--gold); border-radius: 3px; margin: 0 0 26px; }
+
+    /* 로그인/관리 바 */
+    .board-authbar {
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+      gap: 14px; background: #fff; border: 1px solid var(--lavender);
+      border-radius: 14px; padding: 16px 20px; margin-bottom: 26px;
+      box-shadow: 0 6px 20px rgba(61,43,86,0.05);
+    }
+    .board-authbar .auth-info { display: flex; align-items: center; gap: 12px; font-size: 0.95rem; color: var(--plum); }
+    .board-authbar .auth-info .admin-badge {
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+      color: #fff; font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+    }
+    .board-authbar .auth-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+    .btn-board {
+      display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+      border: none; border-radius: 10px; font-family: inherit; font-weight: 700;
+      font-size: 0.92rem; padding: 11px 20px; transition: all 0.25s ease; white-space: nowrap;
+    }
+    .btn-board-gold { background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%); color: #fff; }
+    .btn-board-gold:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(176,142,69,0.35); }
+    .btn-board-plum { background: var(--plum); color: #fff; }
+    .btn-board-plum:hover { background: var(--plum-dark); transform: translateY(-2px); }
+    .btn-board-outline { background: #fff; color: var(--plum); border: 1.5px solid var(--lavender); }
+    .btn-board-outline:hover { border-color: var(--gold); color: var(--gold-dark); }
+    .btn-board-danger { background: #fff; color: #c0392b; border: 1.5px solid #e9c3bd; }
+    .btn-board-danger:hover { background: #c0392b; color: #fff; border-color: #c0392b; }
+    .btn-board-google {
+      background: #fff; color: #3c4043; border: 1.5px solid #dadce0;
+    }
+    .btn-board-google:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); transform: translateY(-2px); }
+    .btn-board-google .g-ico { width: 18px; height: 18px; display: inline-block; }
+
+    /* 목록 */
+    .post-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+    .post-card {
+      background: #fff; border: 1px solid var(--lavender); border-radius: 14px;
+      padding: 22px 24px; cursor: pointer; transition: all 0.25s ease;
+      box-shadow: 0 4px 14px rgba(61,43,86,0.04);
+    }
+    .post-card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(61,43,86,0.12); border-color: var(--gold-light); }
+    .post-card h3 {
+      font-size: 1.12rem; font-weight: 700; color: var(--plum); margin-bottom: 8px;
+      line-height: 1.4; word-break: keep-all;
+    }
+    .post-card .post-excerpt { color: #666; font-size: 0.93rem; line-height: 1.6; word-break: keep-all;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .post-card .post-meta { margin-top: 12px; font-size: 0.82rem; color: #9a8fb0; display: flex; align-items: center; gap: 6px; }
+
+    .board-empty, .board-loading {
+      text-align: center; padding: 70px 20px; color: #9a8fb0; font-size: 1rem;
+    }
+    .board-empty i, .board-loading i { font-size: 2.4rem; color: var(--lavender); display: block; margin-bottom: 16px; }
+
+    /* 상세 */
+    .post-detail {
+      background: #fff; border: 1px solid var(--lavender); border-radius: 16px;
+      padding: 40px; box-shadow: 0 8px 26px rgba(61,43,86,0.06);
+    }
+    .post-detail h1 {
+      font-size: clamp(1.4rem, 3.2vw, 2rem); font-weight: 900; color: var(--plum);
+      line-height: 1.35; word-break: keep-all; margin-bottom: 14px;
+    }
+    .post-detail .post-meta { font-size: 0.86rem; color: #9a8fb0; padding-bottom: 20px; border-bottom: 1px solid var(--lavender); margin-bottom: 26px; }
+    .post-detail .post-body {
+      font-size: 1.02rem; line-height: 1.9; color: #2C2C2C; white-space: pre-wrap; word-break: keep-all;
+    }
+    .post-detail-actions { display: flex; gap: 10px; margin-top: 34px; padding-top: 24px; border-top: 1px solid var(--lavender); flex-wrap: wrap; }
+
+    /* 작성/수정 폼 */
+    .post-form { background: #fff; border: 1px solid var(--lavender); border-radius: 16px; padding: 40px; box-shadow: 0 8px 26px rgba(61,43,86,0.06); }
+    .post-form .field { margin-bottom: 22px; }
+    .post-form label { display: block; font-weight: 700; color: var(--plum); margin-bottom: 8px; font-size: 0.95rem; }
+    .post-form input[type="text"], .post-form textarea {
+      width: 100%; border: 1.5px solid var(--lavender); border-radius: 10px;
+      padding: 14px 16px; font-family: inherit; font-size: 1rem; color: #2C2C2C;
+      transition: border-color 0.2s ease; background: #fdfcfb;
+    }
+    .post-form input[type="text"]:focus, .post-form textarea:focus { outline: none; border-color: var(--gold); background: #fff; }
+    .post-form textarea { resize: vertical; min-height: 280px; line-height: 1.8; }
+    .post-form-actions { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+
+    .back-link {
+      display: inline-flex; align-items: center; gap: 7px; color: var(--plum-light);
+      font-size: 0.92rem; font-weight: 500; cursor: pointer; margin-bottom: 22px; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--gold-dark); }
+
+    @media (max-width: 760px) {
+      .board-section { padding: 100px 0 70px; }
+      .post-detail, .post-form { padding: 26px 20px; }
+      .board-authbar { padding: 14px 16px; }
+      .board-authbar .auth-actions { width: 100%; }
+      .board-authbar .auth-actions .btn-board { flex: 1; justify-content: center; }
+      .post-detail-actions .btn-board, .post-form-actions .btn-board { flex: 1; justify-content: center; }
+    }
   </style>
 </head>
 <body>
@@ -482,6 +603,7 @@
         <a href="#services" class="menu-link">서비스소개</a>
         <a href="#benefits" class="menu-link">강점</a>
         <a href="#reviews" class="menu-link">고객후기</a>
+        <a href="#board" class="menu-link">세무 정보</a>
         <a href="#contact" class="menu-link">상담문의</a>
       </nav>
       <a href="#contact" class="nav-tel"><i class="fas fa-comments"></i> 무료 세무 상담받기</a>
@@ -496,6 +618,7 @@
     <a href="#services">서비스소개</a>
     <a href="#benefits">강점</a>
     <a href="#reviews">고객후기</a>
+    <a href="#board">세무 정보</a>
     <a href="#contact">상담문의</a>
     <a href="#contact" class="btn btn-gold"><i class="fas fa-comments"></i> 무료 세무 상담받기</a>
   </aside>
@@ -776,6 +899,75 @@
     </div>
   </footer>
 
+  <!-- ===== 세무 정보 게시판 (SPA 뷰) ===== -->
+  <section class="board-section" id="board-view">
+    <div class="container">
+      <header class="board-head">
+        <div>
+          <h2>세무 <span class="accent">정보</span></h2>
+          <p class="board-sub">호텔·숙박업 사장님을 위한 세무 소식과 절세 정보를 전해드립니다.</p>
+        </div>
+      </header>
+      <div class="board-divider"></div>
+
+      <!-- 로그인/관리 바 -->
+      <div class="board-authbar">
+        <div class="auth-info" id="authInfo">
+          <span id="authGuestText"><i class="fas fa-user-circle" style="color:var(--plum-light)"></i> 방문자로 열람 중입니다.</span>
+        </div>
+        <div class="auth-actions" id="authActions">
+          <button class="btn-board btn-board-google" id="btnGoogleLogin">
+            <span class="g-ico" aria-hidden="true">
+              <svg viewBox="0 0 48 48" width="18" height="18"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            </span>
+            구글 로그인
+          </button>
+        </div>
+      </div>
+
+      <!-- 뷰 1: 목록 -->
+      <div id="boardList">
+        <div class="board-loading" id="listLoading"><i class="fas fa-spinner fa-spin"></i>불러오는 중...</div>
+        <ul class="post-list" id="postList" style="display:none"></ul>
+        <div class="board-empty" id="listEmpty" style="display:none"><i class="far fa-folder-open"></i>아직 등록된 세무 정보가 없습니다.</div>
+      </div>
+
+      <!-- 뷰 2: 상세 -->
+      <div id="boardDetail" style="display:none">
+        <span class="back-link" id="detailBack"><i class="fas fa-arrow-left"></i> 목록으로</span>
+        <article class="post-detail">
+          <h1 id="detailTitle"></h1>
+          <div class="post-meta" id="detailMeta"></div>
+          <div class="post-body" id="detailBody"></div>
+          <div class="post-detail-actions" id="detailActions" style="display:none">
+            <button class="btn-board btn-board-plum" id="btnEdit"><i class="fas fa-pen"></i> 수정</button>
+            <button class="btn-board btn-board-danger" id="btnDelete"><i class="fas fa-trash"></i> 삭제</button>
+          </div>
+        </article>
+      </div>
+
+      <!-- 뷰 3: 작성/수정 폼 -->
+      <div id="boardForm" style="display:none">
+        <span class="back-link" id="formBack"><i class="fas fa-arrow-left"></i> 목록으로</span>
+        <form class="post-form" id="postForm">
+          <h2 style="font-size:1.4rem;font-weight:900;color:var(--plum);margin-bottom:24px;" id="formTitle">새 글 작성</h2>
+          <div class="field">
+            <label for="fTitle">제목</label>
+            <input type="text" id="fTitle" name="title" maxlength="200" placeholder="제목을 입력하세요" required />
+          </div>
+          <div class="field">
+            <label for="fContent">내용</label>
+            <textarea id="fContent" name="content" placeholder="내용을 입력하세요" required></textarea>
+          </div>
+          <div class="post-form-actions">
+            <button type="submit" class="btn-board btn-board-gold" id="btnSave"><i class="fas fa-check"></i> 저장</button>
+            <button type="button" class="btn-board btn-board-outline" id="btnCancel">취소</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
   <!-- ===== 우측 세로 퀵 메뉴 ===== -->
   <nav class="quick-menu" aria-label="퀵 메뉴">
     <a href="http://pf.kakao.com/_QLxaPxj/chat" class="quick-btn quick-kakao" id="quickKakao" target="_blank" rel="noopener" aria-label="카카오톡 상담">
@@ -928,6 +1120,291 @@
           window.location.href = 'mailto:' + full;
         });
       }
+    })();
+
+    /* ============================================================
+       세무 정보 게시판 (Supabase 백엔드)
+       ============================================================ */
+    (function () {
+      const SUPABASE_URL = 'https://kbkmlwtldpuwssooikcm.supabase.co';
+      const SUPABASE_ANON_KEY = 'sb_publishable_70Bak9NaZKYyi9BJPMXXPA_4C4T3toV';
+      const ADMIN_EMAIL = 'grossuptax@gmail.com';
+
+      if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+        console.error('[게시판] Supabase 라이브러리를 불러오지 못했습니다.');
+        return;
+      }
+      const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      // --- DOM 참조 ---
+      const boardListEl   = document.getElementById('boardList');
+      const boardDetailEl = document.getElementById('boardDetail');
+      const boardFormEl   = document.getElementById('boardForm');
+      const listLoading   = document.getElementById('listLoading');
+      const postListEl    = document.getElementById('postList');
+      const listEmpty     = document.getElementById('listEmpty');
+
+      const detailTitle   = document.getElementById('detailTitle');
+      const detailMeta    = document.getElementById('detailMeta');
+      const detailBody    = document.getElementById('detailBody');
+      const detailActions = document.getElementById('detailActions');
+
+      const authGuestText = document.getElementById('authGuestText');
+      const authActions   = document.getElementById('authActions');
+      const btnGoogleLogin= document.getElementById('btnGoogleLogin');
+
+      const postForm      = document.getElementById('postForm');
+      const fTitle        = document.getElementById('fTitle');
+      const fContent      = document.getElementById('fContent');
+      const formTitleEl   = document.getElementById('formTitle');
+      const btnSave       = document.getElementById('btnSave');
+
+      let currentUser = null;      // 로그인 사용자
+      let editingId   = null;      // 수정 중인 글 id (null이면 새 글)
+      let currentPost = null;      // 상세 화면에 표시 중인 글
+
+      const isAdmin = () =>
+        !!currentUser && (currentUser.email || '').toLowerCase() === ADMIN_EMAIL.toLowerCase();
+
+      // --- 유틸 ---
+      function escapeHtml(s) {
+        return String(s == null ? '' : s)
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      }
+      function fmtDate(iso) {
+        if (!iso) return '';
+        const d = new Date(iso);
+        if (isNaN(d)) return '';
+        const p = n => String(n).padStart(2, '0');
+        return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())}`;
+      }
+
+      // --- 게시판 모드 진입/이탈 ---
+      function enterBoard() {
+        document.body.classList.add('board-mode');
+        window.scrollTo(0, 0);
+      }
+      function leaveBoard() {
+        document.body.classList.remove('board-mode');
+      }
+
+      // --- 내부 뷰 전환 (목록/상세/작성) ---
+      function showList() {
+        boardListEl.style.display = 'block';
+        boardDetailEl.style.display = 'none';
+        boardFormEl.style.display = 'none';
+        window.scrollTo(0, 0);
+        loadPosts();
+      }
+      function showDetail() {
+        boardListEl.style.display = 'none';
+        boardDetailEl.style.display = 'block';
+        boardFormEl.style.display = 'none';
+        window.scrollTo(0, 0);
+      }
+      function showForm() {
+        boardListEl.style.display = 'none';
+        boardDetailEl.style.display = 'none';
+        boardFormEl.style.display = 'block';
+        window.scrollTo(0, 0);
+      }
+
+      // --- 인증 UI 갱신 ---
+      function renderAuthBar() {
+        if (currentUser) {
+          const admin = isAdmin();
+          authGuestText.innerHTML = admin
+            ? `<i class="fas fa-user-shield" style="color:var(--gold-dark)"></i> ${escapeHtml(currentUser.email)} <span class="admin-badge">운영자</span>`
+            : `<i class="fas fa-user-circle" style="color:var(--plum-light)"></i> ${escapeHtml(currentUser.email)} 님`;
+          let html = '';
+          if (admin) {
+            html += `<button class="btn-board btn-board-gold" id="btnNew"><i class="fas fa-pen-to-square"></i> 글쓰기</button>`;
+          }
+          html += `<button class="btn-board btn-board-outline" id="btnLogout"><i class="fas fa-right-from-bracket"></i> 로그아웃</button>`;
+          authActions.innerHTML = html;
+          if (admin) document.getElementById('btnNew').addEventListener('click', openNewForm);
+          document.getElementById('btnLogout').addEventListener('click', doLogout);
+        } else {
+          authGuestText.innerHTML = `<i class="fas fa-user-circle" style="color:var(--plum-light)"></i> 방문자로 열람 중입니다.`;
+          authActions.innerHTML = '';
+          authActions.appendChild(btnGoogleLogin);
+          btnGoogleLogin.style.display = '';
+        }
+        // 상세 화면 수정/삭제 버튼 노출
+        if (detailActions) detailActions.style.display = isAdmin() ? 'flex' : 'none';
+      }
+
+      // --- 목록 로드 ---
+      async function loadPosts() {
+        listLoading.style.display = 'block';
+        postListEl.style.display = 'none';
+        listEmpty.style.display = 'none';
+        postListEl.innerHTML = '';
+        try {
+          const { data, error } = await sb
+            .from('posts')
+            .select('id, title, content, created_at')
+            .order('created_at', { ascending: false });
+          if (error) throw error;
+          listLoading.style.display = 'none';
+          if (!data || data.length === 0) {
+            listEmpty.style.display = 'block';
+            return;
+          }
+          postListEl.style.display = 'flex';
+          data.forEach(post => {
+            const li = document.createElement('li');
+            li.className = 'post-card';
+            const excerpt = (post.content || '').replace(/\s+/g, ' ').trim();
+            li.innerHTML = `
+              <h3>${escapeHtml(post.title)}</h3>
+              <p class="post-excerpt">${escapeHtml(excerpt)}</p>
+              <div class="post-meta"><i class="far fa-calendar"></i> ${fmtDate(post.created_at)}</div>`;
+            li.addEventListener('click', () => openDetail(post));
+            postListEl.appendChild(li);
+          });
+        } catch (err) {
+          console.error('[게시판] 목록 로드 실패:', err);
+          listLoading.style.display = 'none';
+          listEmpty.style.display = 'block';
+          listEmpty.innerHTML = '<i class="fas fa-triangle-exclamation"></i>목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.';
+        }
+      }
+
+      // --- 상세 열기 ---
+      function openDetail(post) {
+        currentPost = post;
+        detailTitle.textContent = post.title || '';
+        detailMeta.innerHTML = `<i class="far fa-calendar"></i> ${fmtDate(post.created_at)}`;
+        detailBody.textContent = post.content || '';
+        detailActions.style.display = isAdmin() ? 'flex' : 'none';
+        showDetail();
+      }
+
+      // --- 새 글 폼 ---
+      function openNewForm() {
+        if (!isAdmin()) return;
+        editingId = null;
+        formTitleEl.textContent = '새 글 작성';
+        fTitle.value = '';
+        fContent.value = '';
+        showForm();
+      }
+      // --- 수정 폼 ---
+      function openEditForm() {
+        if (!isAdmin() || !currentPost) return;
+        editingId = currentPost.id;
+        formTitleEl.textContent = '글 수정';
+        fTitle.value = currentPost.title || '';
+        fContent.value = currentPost.content || '';
+        showForm();
+      }
+
+      // --- 저장 (작성/수정) ---
+      postForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!isAdmin()) { alert('운영자만 작성할 수 있습니다.'); return; }
+        const title = fTitle.value.trim();
+        const content = fContent.value.trim();
+        if (!title || !content) { alert('제목과 내용을 모두 입력해 주세요.'); return; }
+
+        const original = btnSave.innerHTML;
+        btnSave.disabled = true;
+        btnSave.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 저장 중...';
+        try {
+          let error;
+          if (editingId) {
+            ({ error } = await sb.from('posts').update({ title, content }).eq('id', editingId));
+          } else {
+            ({ error } = await sb.from('posts').insert({ title, content }));
+          }
+          if (error) throw error;
+          btnSave.disabled = false;
+          btnSave.innerHTML = original;
+          editingId = null;
+          showList(); // 목록으로 복귀 (최신순이라 새 글이 위로)
+        } catch (err) {
+          console.error('[게시판] 저장 실패:', err);
+          alert('저장에 실패했습니다.\n운영자 권한 또는 네트워크 상태를 확인해 주세요.');
+          btnSave.disabled = false;
+          btnSave.innerHTML = original;
+        }
+      });
+
+      // --- 삭제 ---
+      async function doDelete() {
+        if (!isAdmin() || !currentPost) return;
+        if (!confirm('정말 삭제하시겠습니까?')) return;
+        try {
+          const { error } = await sb.from('posts').delete().eq('id', currentPost.id);
+          if (error) throw error;
+          currentPost = null;
+          showList();
+        } catch (err) {
+          console.error('[게시판] 삭제 실패:', err);
+          alert('삭제에 실패했습니다. 운영자 권한을 확인해 주세요.');
+        }
+      }
+
+      // --- 로그인/로그아웃 ---
+      async function doGoogleLogin() {
+        try {
+          const { error } = await sb.auth.signInWithOAuth({
+            provider: 'google',
+            options: { redirectTo: window.location.origin + window.location.pathname + '#board' }
+          });
+          if (error) throw error;
+        } catch (err) {
+          console.error('[게시판] 구글 로그인 실패:', err);
+          alert('구글 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+        }
+      }
+      async function doLogout() {
+        try { await sb.auth.signOut(); } catch (e) { console.error(e); }
+        currentUser = null;
+        renderAuthBar();
+        // 작성/수정/상세에 있었다면 목록으로
+        showList();
+      }
+
+      // --- 이벤트 바인딩 ---
+      btnGoogleLogin.addEventListener('click', doGoogleLogin);
+      document.getElementById('detailBack').addEventListener('click', () => { window.location.hash = '#board'; showList(); });
+      document.getElementById('formBack').addEventListener('click', () => showList());
+      document.getElementById('btnCancel').addEventListener('click', () => { editingId = null; showList(); });
+      document.getElementById('btnEdit').addEventListener('click', openEditForm);
+      document.getElementById('btnDelete').addEventListener('click', doDelete);
+
+      // --- 해시 라우팅 ---
+      function handleRoute() {
+        const hash = window.location.hash;
+        if (hash === '#board') {
+          enterBoard();
+          // 상세/폼이 아닌 기본 진입 시 목록 표시
+          if (boardDetailEl.style.display !== 'block' && boardFormEl.style.display !== 'block') {
+            showList();
+          } else {
+            showList();
+          }
+        } else {
+          leaveBoard();
+        }
+      }
+      window.addEventListener('hashchange', handleRoute);
+
+      // --- 인증 상태 복원 & 구독 ---
+      sb.auth.getSession().then(({ data }) => {
+        currentUser = data && data.session ? data.session.user : null;
+        renderAuthBar();
+      });
+      sb.auth.onAuthStateChange((_event, session) => {
+        currentUser = session ? session.user : null;
+        renderAuthBar();
+      });
+
+      // 최초 진입 처리 (OAuth 리다이렉트로 #board 복귀 포함)
+      handleRoute();
     })();
   </script>
 </body>
