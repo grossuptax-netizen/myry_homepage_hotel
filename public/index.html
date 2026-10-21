@@ -668,6 +668,20 @@
     .post-form .ql-snow .ql-stroke { stroke: var(--plum); }
     .post-form .ql-snow .ql-fill { fill: var(--plum); }
     .post-form .ql-snow .ql-picker { color: var(--plum); }
+    /* 글씨 크기 메뉴: 영어(Normal/Large) 대신 px 숫자로 표시 */
+    .post-form .ql-snow .ql-picker.ql-size { width: 104px; }
+    .post-form .ql-snow .ql-picker.ql-size .ql-picker-label::before,
+    .post-form .ql-snow .ql-picker.ql-size .ql-picker-item::before { content: '기본 16px'; }
+    .post-form .ql-snow .ql-picker.ql-size [data-value]::before { content: attr(data-value); }
+    .post-form .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="12px"]::before { font-size: 12px; }
+    .post-form .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="14px"]::before { font-size: 14px; }
+    .post-form .ql-snow .ql-picker.ql-size .ql-picker-item:not([data-value])::before { font-size: 16px; }
+    .post-form .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="18px"]::before { font-size: 18px; }
+    .post-form .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="20px"]::before { font-size: 20px; }
+    .post-form .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="24px"]::before { font-size: 24px; }
+    .post-form .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="28px"]::before { font-size: 28px; }
+    .post-form .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="32px"]::before { font-size: 32px; }
+    .editor-hint { margin-top: 8px; font-size: 0.82rem; color: #9a8fb0; }
     .post-form .ql-snow.ql-toolbar button:hover .ql-stroke,
     .post-form .ql-snow.ql-toolbar button.ql-active .ql-stroke { stroke: var(--gold-dark); }
     .post-form .ql-snow.ql-toolbar button:hover .ql-fill,
@@ -1067,6 +1081,7 @@
           <div class="field">
             <label>내용</label>
             <div id="quillEditor"></div>
+            <p class="editor-hint"><i class="fas fa-circle-info" aria-hidden="true"></i> 글씨 크기는 바꿀 글자를 드래그해 선택한 뒤, 맨 왼쪽 ‘기본 16px’ 메뉴에서 고르세요.</p>
             <div id="editorUploading"><i class="fas fa-spinner fa-spin"></i> 사진 업로드 중...</div>
           </div>
           <div class="post-form-actions">
@@ -1286,6 +1301,8 @@
       const editorUploading = document.getElementById('editorUploading');
 
       const STORAGE_BUCKET = 'post-images';   // Supabase Storage 버킷명
+      // 글쓰기 글씨 크기 단계 (false = 기본 16px). 바꾸면 CSS 의 .ql-size 표시 규칙도 함께 맞출 것
+      const FONT_SIZES = ['12px', '14px', false, '18px', '20px', '24px', '28px', '32px'];
 
       // 카테고리 목록 (필터 버튼·글쓰기 드롭다운 공통, posts.category 에 이 이름 그대로 저장)
       // name: 화면 표시·DB 저장값 / en: 기본 카드 영문 표기 / icon: Font Awesome 아이콘
@@ -1313,13 +1330,17 @@
       function ensureQuill() {
         if (quill) return quill;
         if (!window.Quill) { console.error('[게시판] Quill 로드 실패'); return null; }
+        // 글씨 크기: px 단위 인라인 스타일로 저장 (false = 기본 16px)
+        const SizeStyle = Quill.import('attributors/style/size');
+        SizeStyle.whitelist = FONT_SIZES.filter(Boolean);
+        Quill.register(SizeStyle, true);
         quill = new Quill('#quillEditor', {
           theme: 'snow',
           placeholder: '내용을 입력하세요. 사진은 툴바의 카메라 버튼으로 추가할 수 있습니다.',
           modules: {
             toolbar: {
               container: [
-                [{ size: ['small', false, 'large', 'huge'] }],
+                [{ size: FONT_SIZES }],
                 ['bold', 'italic', 'underline'],
                 [{ color: [] }],
                 [{ align: [] }],
@@ -1333,6 +1354,16 @@
             clipboard: { matchVisual: false }
           }
         });
+        // 툴바 버튼에 마우스를 올리면 한글 설명 표시
+        const tips = {
+          '.ql-size': '글씨 크기 (글자를 드래그해 선택한 뒤 고르세요)', '.ql-bold': '굵게', '.ql-italic': '기울임',
+          '.ql-underline': '밑줄', '.ql-color': '글자 색', '.ql-align': '정렬',
+          '.ql-list[value="ordered"]': '번호 목록', '.ql-list[value="bullet"]': '글머리 목록',
+          '.ql-image': '사진 넣기', '.ql-clean': '서식 지우기'
+        };
+        const toolbarEl = quill.getModule('toolbar').container;
+        Object.entries(tips).forEach(([sel, tip]) =>
+          toolbarEl.querySelectorAll(sel).forEach(el => { el.title = tip; }));
         return quill;
       }
 
