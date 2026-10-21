@@ -910,11 +910,6 @@
       </header>
       <div class="board-divider"></div>
 
-      <!-- 임시 디버그 패널 (로그인 문제 진단용) -->
-      <div id="authDebug" style="background:#1e1433;color:#d9c8f5;border:1px solid var(--plum-light);border-radius:12px;padding:16px 18px;margin-bottom:20px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:0.82rem;line-height:1.7;white-space:pre-wrap;word-break:break-all;">
-        <strong style="color:var(--gold-light);display:block;margin-bottom:8px;">🔧 로그인 디버그 (문제 해결 후 제거 예정)</strong><span id="authDebugBody">초기화 중...</span>
-      </div>
-
       <!-- 로그인/관리 바 -->
       <div class="board-authbar">
         <div class="auth-info" id="authInfo">
@@ -1147,23 +1142,6 @@
           // flowType 미지정 → Supabase 기본 PKCE 흐름(?code=) 사용. implicit(#access_token)도 detectSessionInUrl 로 함께 처리됨.
         }
       });
-
-      // ===== 디버그 패널 =====
-      const _dbgEl = document.getElementById('authDebugBody');
-      const _dbgLines = [];
-      function dbg(msg) {
-        const t = new Date().toLocaleTimeString('ko-KR');
-        _dbgLines.push('[' + t + '] ' + msg);
-        if (_dbgLines.length > 20) _dbgLines.shift();
-        if (_dbgEl) _dbgEl.textContent = _dbgLines.join('\n');
-        console.log('[게시판 DBG]', msg);
-      }
-      // 최초 진입 시 URL 상태 기록 (토큰이 어떤 형태로 돌아오는지 확인)
-      dbg('진입 URL: ' + window.location.href);
-      dbg('search(쿼리): ' + (window.location.search || '(없음)'));
-      dbg('hash(해시): ' + (window.location.hash || '(없음)'));
-      dbg('code 파라미터: ' + (new URLSearchParams(window.location.search).get('code') ? '있음(PKCE)' : '없음'));
-      dbg('access_token 해시: ' + (/access_token=/.test(window.location.hash) ? '있음(implicit)' : '없음'));
 
       // --- DOM 참조 ---
       const boardListEl   = document.getElementById('boardList');
@@ -1420,9 +1398,7 @@
       window.addEventListener('hashchange', handleRoute);
 
       // --- 인증 상태 변화 구독 (로그인/로그아웃 시 새로고침 없이 즉시 반영) ---
-      sb.auth.onAuthStateChange((event, session) => {
-        const email = session && session.user ? session.user.email : '(없음)';
-        dbg('onAuthStateChange: event=' + event + ', email=' + email);
+      sb.auth.onAuthStateChange((_event, session) => {
         currentUser = session ? session.user : null;
         renderAuthBar();
       });
@@ -1436,30 +1412,19 @@
 
         // PKCE 흐름이면 code 를 세션으로 명시적으로 교환
         if (hasCode) {
-          dbg('PKCE code 감지 → exchangeCodeForSession 시도...');
           try {
-            const { data, error } = await sb.auth.exchangeCodeForSession(window.location.href);
-            if (error) {
-              dbg('❌ exchangeCodeForSession 오류: ' + error.message);
-            } else {
-              dbg('✅ code 교환 성공: ' + (data && data.session && data.session.user ? data.session.user.email : '세션 없음'));
-            }
+            await sb.auth.exchangeCodeForSession(window.location.href);
           } catch (err) {
-            dbg('❌ exchangeCodeForSession 예외: ' + (err && err.message ? err.message : err));
+            console.error('[게시판] 코드 교환 실패:', err);
           }
         }
 
         // 세션 복원 (detectSessionInUrl=true 이면 implicit 토큰도 처리됨)
         try {
-          const { data, error } = await sb.auth.getSession();
-          if (error) dbg('❌ getSession 오류: ' + error.message);
+          const { data } = await sb.auth.getSession();
           currentUser = data && data.session ? data.session.user : null;
-          dbg('getSession 결과: ' + (currentUser ? '로그인됨 → ' + currentUser.email : '세션 없음'));
-          if (currentUser) {
-            dbg('운영자 판별: 로그인 이메일=' + currentUser.email + ' / 운영자=' + ADMIN_EMAIL + ' → ' + (isAdmin() ? '✅ 일치(운영자)' : '❌ 불일치(일반)'));
-          }
         } catch (err) {
-          dbg('❌ getSession 예외: ' + (err && err.message ? err.message : err));
+          console.error('[게시판] 세션 복원 실패:', err);
           currentUser = null;
         }
 
