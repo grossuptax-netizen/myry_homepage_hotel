@@ -479,21 +479,31 @@
     body.board-mode > footer.site-footer { display: none; }
 
     .board-section {
-      padding: 130px 0 90px;
+      padding: 0 0 90px;
       min-height: 70vh;
       background: var(--ivory);
     }
-    .board-head {
-      display: flex; align-items: flex-end; justify-content: space-between;
-      flex-wrap: wrap; gap: 20px; margin-bottom: 14px;
+    /* 상단 보라색 배경 (홈 첫 화면 .hero 와 같은 사진·색) */
+    .board-hero {
+      padding: 130px 0 36px; color: #fff; margin-bottom: 34px;
+      background: linear-gradient(rgba(44,30,64,0.86), rgba(61,43,86,0.80)), url('assets/hero-bg.jpg') center/cover no-repeat;
     }
-    .board-head h2 {
-      font-size: clamp(1.6rem, 3.4vw, 2.3rem); font-weight: 900; color: var(--plum);
-      line-height: 1.2;
+    .board-crumb { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: rgba(255,255,255,0.65); margin-bottom: 16px; }
+    .board-crumb a { color: rgba(255,255,255,0.65); transition: color 0.2s; }
+    .board-crumb a:hover { color: var(--gold-light); }
+    .board-crumb i { font-size: 0.6rem; }
+    .board-crumb span { color: var(--gold-light); font-weight: 500; }
+    .board-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid rgba(203,169,97,0.6); color: var(--gold-light);
+      padding: 6px 16px; border-radius: 50px; font-size: 0.82rem; font-weight: 500; letter-spacing: 0.5px;
+      margin-bottom: 18px; backdrop-filter: blur(4px);
     }
-    .board-head h2 .accent { color: var(--gold-dark); }
-    .board-sub { margin-top: 8px; color: #6b6b6b; font-size: 0.97rem; }
-    .board-divider { height: 3px; width: 60px; background: var(--gold); border-radius: 3px; margin: 0 0 26px; }
+    .board-hero h2 {
+      font-size: clamp(1.9rem, 4.4vw, 3rem); font-weight: 900; color: #fff; line-height: 1.2;
+    }
+    .board-hero h2 .accent { color: var(--gold-light); }
+    .board-sub { margin-top: 12px; color: rgba(255,255,255,0.85); font-size: 1rem; font-weight: 300; word-break: keep-all; }
 
     /* 로그인/관리 바 */
     .board-authbar {
@@ -528,21 +538,72 @@
     .btn-board-google:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); transform: translateY(-2px); }
     .btn-board-google .g-ico { width: 18px; height: 18px; display: inline-block; }
 
-    /* 목록 */
-    .post-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+    /* 카테고리 필터 (보라색 배경 위) */
+    .cat-filter { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 30px; }
+    .cat-btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      border: 1px solid rgba(255,255,255,0.22); background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.92);
+      font-family: inherit; font-size: 0.9rem; font-weight: 500; white-space: nowrap;
+      padding: 9px 18px; border-radius: 999px; cursor: pointer; transition: all 0.2s ease;
+      backdrop-filter: blur(4px);
+    }
+    .cat-btn i { color: var(--gold-light); font-size: 0.85em; }
+    .cat-btn:hover { border-color: var(--gold-light); background: rgba(255,255,255,0.14); color: #fff; }
+    .cat-btn.active {
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+      border-color: transparent; color: #fff; font-weight: 700;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.25);
+    }
+    .cat-btn.active i { color: #fff; }
+
+    /* 카테고리 배지 */
+    .cat-badge {
+      display: inline-block; align-self: flex-start; background: rgba(203,169,97,0.15); color: var(--gold-dark);
+      font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; line-height: 1.6;
+    }
+
+    /* 목록: 대표 이미지 카드 */
+    .post-list { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 22px; }
     .post-card {
-      background: #fff; border: 1px solid var(--lavender); border-radius: 14px;
-      padding: 22px 24px; cursor: pointer; transition: all 0.25s ease;
+      background: #fff; border: 1px solid var(--lavender); border-radius: 14px; overflow: hidden;
+      display: flex; flex-direction: column; cursor: pointer; transition: all 0.25s ease;
       box-shadow: 0 4px 14px rgba(61,43,86,0.04);
     }
     .post-card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(61,43,86,0.12); border-color: var(--gold-light); }
-    .post-card h3 {
-      font-size: 1.12rem; font-weight: 700; color: var(--plum); margin-bottom: 8px;
-      line-height: 1.4; word-break: keep-all;
+    .post-thumb {
+      position: relative; aspect-ratio: 16 / 10; overflow: hidden;
+      background: var(--lavender); border-bottom: 5px solid var(--gold);
     }
-    .post-card .post-excerpt { color: #666; font-size: 0.93rem; line-height: 1.6; word-break: keep-all;
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .post-card .post-meta { margin-top: 12px; font-size: 0.82rem; color: #9a8fb0; display: flex; align-items: center; gap: 6px; }
+    .post-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+    .post-card:hover .post-thumb img { transform: scale(1.04); }
+    /* 본문에 사진이 없을 때: 아이콘 + 카테고리 이름이 들어간 보라색 카드 */
+    .post-thumb.is-fallback {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 20px; text-align: center;
+      background: linear-gradient(150deg, var(--plum-dark) 0%, var(--plum) 55%, var(--plum-light) 100%);
+    }
+    .post-thumb.is-fallback::before, .post-thumb.is-fallback::after {
+      content: ''; position: absolute; border-radius: 50%; pointer-events: none;
+    }
+    .post-thumb.is-fallback::before { width: 170px; height: 170px; top: -60px; right: -45px; background: rgba(255,255,255,0.06); }
+    .post-thumb.is-fallback::after  { width: 120px; height: 120px; bottom: -50px; left: -35px; background: rgba(203,169,97,0.14); }
+    .thumb-icon {
+      position: relative; z-index: 1; width: 64px; height: 64px; border-radius: 50%; margin-bottom: 14px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.12); color: #fff; font-size: 1.45rem;
+      transition: transform 0.3s ease;
+    }
+    .post-card:hover .thumb-icon { transform: scale(1.08); }
+    .thumb-name { position: relative; z-index: 1; color: #fff; font-size: 1.12rem; font-weight: 700; line-height: 1.4; word-break: keep-all; }
+    .thumb-en { position: relative; z-index: 1; margin-top: 4px; color: var(--gold-light); font-size: 0.66rem; font-weight: 700; letter-spacing: 2px; }
+    .post-card-body { flex: 1; display: flex; flex-direction: column; gap: 8px; padding: 18px 20px 22px; }
+    .post-card h3 {
+      font-size: 1.08rem; font-weight: 700; color: var(--plum); line-height: 1.45; word-break: keep-all;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .post-card .post-excerpt { color: #666; font-size: 0.92rem; line-height: 1.6; word-break: keep-all;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .post-card .post-meta { font-size: 0.82rem; color: #9a8fb0; display: flex; align-items: center; gap: 6px; }
 
     .board-empty, .board-loading {
       text-align: center; padding: 70px 20px; color: #9a8fb0; font-size: 1rem;
@@ -559,6 +620,7 @@
       line-height: 1.35; word-break: keep-all; margin-bottom: 14px;
     }
     .post-detail .post-meta { font-size: 0.86rem; color: #9a8fb0; padding-bottom: 20px; border-bottom: 1px solid var(--lavender); margin-bottom: 26px; }
+    .post-detail .post-meta .cat-badge { margin-right: 10px; }
     /* 상세 본문: Quill HTML 서식·사진 렌더링 */
     .post-detail .post-body {
       font-size: 1.02rem; line-height: 1.9; color: #2C2C2C; word-break: keep-all;
@@ -582,12 +644,13 @@
     .post-form { background: #fff; border: 1px solid var(--lavender); border-radius: 16px; padding: 40px; box-shadow: 0 8px 26px rgba(61,43,86,0.06); }
     .post-form .field { margin-bottom: 22px; }
     .post-form label { display: block; font-weight: 700; color: var(--plum); margin-bottom: 8px; font-size: 0.95rem; }
-    .post-form input[type="text"], .post-form textarea {
+    .post-form input[type="text"], .post-form textarea, .post-form select {
       width: 100%; border: 1.5px solid var(--lavender); border-radius: 10px;
       padding: 14px 16px; font-family: inherit; font-size: 1rem; color: #2C2C2C;
       transition: border-color 0.2s ease; background: #fdfcfb;
     }
-    .post-form input[type="text"]:focus, .post-form textarea:focus { outline: none; border-color: var(--gold); background: #fff; }
+    .post-form input[type="text"]:focus, .post-form textarea:focus, .post-form select:focus { outline: none; border-color: var(--gold); background: #fff; }
+    .post-form select { cursor: pointer; }
     .post-form textarea { resize: vertical; min-height: 280px; line-height: 1.8; }
     .post-form-actions { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
 
@@ -618,12 +681,22 @@
     .back-link:hover { color: var(--gold-dark); }
 
     @media (max-width: 760px) {
-      .board-section { padding: 100px 0 70px; }
+      .board-section { padding-bottom: 70px; }
+      .board-hero { padding: 100px 0 26px; margin-bottom: 24px; }
+      .board-sub { font-size: 0.93rem; }
       .post-detail, .post-form { padding: 26px 20px; }
       .board-authbar { padding: 14px 16px; }
       .board-authbar .auth-actions { width: 100%; }
       .board-authbar .auth-actions .btn-board { flex: 1; justify-content: center; }
       .post-detail-actions .btn-board, .post-form-actions .btn-board { flex: 1; justify-content: center; }
+      /* 필터 버튼: 한 줄로 두고 옆으로 밀어서 보기 (화면 끝까지 붙여 넘김이 보이게) */
+      .cat-filter {
+        flex-wrap: nowrap; overflow-x: auto; gap: 8px; margin: 24px -24px 0; padding: 2px 24px 6px;
+        scrollbar-width: none; -webkit-overflow-scrolling: touch;
+      }
+      .cat-filter::-webkit-scrollbar { display: none; }
+      .cat-btn { font-size: 0.86rem; padding: 8px 15px; }
+      .post-list { gap: 16px; }
     }
   </style>
 </head>
@@ -937,14 +1010,17 @@
 
   <!-- ===== 세무 정보 게시판 (SPA 뷰) ===== -->
   <section class="board-section" id="board-view">
-    <div class="container">
-      <header class="board-head">
-        <div>
-          <h2>세무 <span class="accent">정보</span></h2>
-          <p class="board-sub">호텔·숙박업 사장님을 위한 세무 소식과 절세 정보를 전해드립니다.</p>
-        </div>
-      </header>
-      <div class="board-divider"></div>
+    <!-- 상단: 홈 첫 화면과 같은 보라색 배경 -->
+    <div class="board-hero">
+      <div class="container">
+        <nav class="board-crumb" aria-label="현재 위치"><a href="#">홈</a><i class="fas fa-chevron-right" aria-hidden="true"></i><span>세무 정보</span></nav>
+        <span class="board-eyebrow"><i class="fas fa-book-open" aria-hidden="true"></i> 호텔·숙박업 세무 칼럼</span>
+        <h2>세무 <span class="accent">정보</span></h2>
+        <p class="board-sub">호텔·숙박업 사장님을 위한 세무 소식과 절세 정보를 전해드립니다.</p>
+        <div class="cat-filter" id="catFilter" aria-label="카테고리 필터"></div>
+      </div>
+    </div>
+    <div class="container board-body">
 
       <!-- 로그인/관리 바 -->
       <div class="board-authbar">
@@ -990,6 +1066,12 @@
           <div class="field">
             <label for="fTitle">제목</label>
             <input type="text" id="fTitle" name="title" maxlength="200" placeholder="제목을 입력하세요" required />
+          </div>
+          <div class="field">
+            <label for="fCategory">카테고리 선택</label>
+            <select id="fCategory" name="category">
+              <option value="">카테고리를 선택하세요</option>
+            </select>
           </div>
           <div class="field">
             <label>내용</label>
@@ -1188,6 +1270,7 @@
       const listLoading   = document.getElementById('listLoading');
       const postListEl    = document.getElementById('postList');
       const listEmpty     = document.getElementById('listEmpty');
+      const catFilterEl   = document.getElementById('catFilter');
 
       const detailTitle   = document.getElementById('detailTitle');
       const detailMeta    = document.getElementById('detailMeta');
@@ -1200,6 +1283,7 @@
 
       const postForm      = document.getElementById('postForm');
       const fTitle        = document.getElementById('fTitle');
+      const fCategory     = document.getElementById('fCategory');
       const formTitleEl   = document.getElementById('formTitle');
       const btnSave       = document.getElementById('btnSave');
       const btnDraft      = document.getElementById('btnDraft');
@@ -1207,10 +1291,24 @@
 
       const STORAGE_BUCKET = 'post-images';   // Supabase Storage 버킷명
 
+      // 카테고리 목록 (필터 버튼·글쓰기 드롭다운 공통, posts.category 에 이 이름 그대로 저장)
+      // name: 화면 표시·DB 저장값 / en: 기본 카드 영문 표기 / icon: Font Awesome 아이콘
+      const CATEGORIES = [
+        { name: '창업·사업자등록',    en: 'STARTUP',  icon: 'fa-store' },
+        { name: '부가가치세',         en: 'VAT',      icon: 'fa-receipt' },
+        { name: '인건비·노무',        en: 'LABOR',    icon: 'fa-users' },
+        { name: '정부지원금·정책자금', en: 'SUBSIDY',  icon: 'fa-hand-holding-dollar' },
+        { name: '세법개정·시사',      en: 'TAX NEWS', icon: 'fa-newspaper' }
+      ];
+      const catInfo = (name) =>
+        CATEGORIES.find(c => c.name === name) || { name: name || '세무 정보', en: 'TAX INSIGHT', icon: 'fa-file-lines' };
+
       let currentUser = null;      // 로그인 사용자
       let editingId   = null;      // 수정 중인 글 id (null이면 새 글)
       let currentPost = null;      // 상세 화면에 표시 중인 글
       let quill       = null;      // Quill 에디터 인스턴스
+      let allPosts    = [];        // 불러온 전체 글 (필터는 이 목록에서 거름)
+      let currentCategory = null;  // 선택된 카테고리 (null 이면 전체보기)
 
       const isAdmin = () =>
         !!currentUser && (currentUser.email || '').toLowerCase() === ADMIN_EMAIL.toLowerCase();
@@ -1318,6 +1416,7 @@
         boardListEl.style.display = 'block';
         boardDetailEl.style.display = 'none';
         boardFormEl.style.display = 'none';
+        catFilterEl.style.display = '';
         window.scrollTo(0, 0);
         loadPosts();
       }
@@ -1325,12 +1424,14 @@
         boardListEl.style.display = 'none';
         boardDetailEl.style.display = 'block';
         boardFormEl.style.display = 'none';
+        catFilterEl.style.display = 'none';   // 필터는 목록에서만
         window.scrollTo(0, 0);
       }
       function showForm() {
         boardListEl.style.display = 'none';
         boardDetailEl.style.display = 'none';
         boardFormEl.style.display = 'block';
+        catFilterEl.style.display = 'none';
         window.scrollTo(0, 0);
       }
 
@@ -1359,14 +1460,47 @@
         if (detailActions) detailActions.style.display = isAdmin() ? 'flex' : 'none';
       }
 
+      // --- 본문 HTML 해석 (DOMParser: 사진을 미리 내려받거나 스크립트를 실행하지 않음) ---
+      function parseHtml(html) {
+        return new DOMParser().parseFromString(html || '', 'text/html');
+      }
       // --- HTML 본문에서 순수 텍스트 미리보기 추출 ---
       function htmlToText(html) {
-        const tmp = document.createElement('div');
-        tmp.innerHTML = html || '';
-        return (tmp.textContent || tmp.innerText || '').replace(/\s+/g, ' ').trim();
+        return (parseHtml(html).body.textContent || '').replace(/\s+/g, ' ').trim();
       }
       // --- 본문에 이미지가 있는지 ---
       function hasImage(html) { return /<img\b/i.test(html || ''); }
+      // --- 대표 이미지: 본문의 첫 번째 <img> 주소 ---
+      function firstImageSrc(html) {
+        const img = parseHtml(html).querySelector('img[src]');
+        const src = img ? img.getAttribute('src').trim() : '';
+        return /^(https?:\/\/|data:image\/)/i.test(src) ? src : '';
+      }
+
+      // --- 카테고리 필터 버튼 ---
+      function buildCatFilter() {
+        [{ name: null, icon: 'fa-table-cells-large' }, ...CATEGORIES].forEach(({ name, icon }) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'cat-btn';
+          b.dataset.cat = name || '';
+          b.innerHTML = `<i class="fas ${icon}" aria-hidden="true"></i>${escapeHtml(name || '전체보기')}`;
+          b.addEventListener('click', () => {
+            currentCategory = name;
+            syncCatFilter();
+            renderPosts();
+          });
+          catFilterEl.appendChild(b);
+        });
+        syncCatFilter();
+      }
+      function syncCatFilter() {
+        catFilterEl.querySelectorAll('.cat-btn').forEach(b => {
+          const on = b.dataset.cat === (currentCategory || '');
+          b.classList.toggle('active', on);
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+      }
 
       // --- 목록 로드 ---
       async function loadPosts() {
@@ -1378,14 +1512,14 @@
           // 일반 방문자: published 만 / 운영자: 전체(draft 포함)
           let query = sb
             .from('posts')
-            .select('id, title, content, created_at, status')
+            .select('id, title, content, created_at, status, category')
             .order('created_at', { ascending: false });
           if (!isAdmin()) query = query.eq('status', 'published');
 
           let { data, error } = await query;
-          // status 컬럼이 아직 없는 경우(42703) → status 없이 폴백 조회
-          if (error && (error.code === '42703' || /status/.test(error.message || ''))) {
-            console.warn('[게시판] status 컬럼 미존재 → 폴백 조회. Supabase 에 status 컬럼을 추가해 주세요.');
+          // status/category 컬럼이 아직 없는 경우(42703) → 기본 컬럼만 폴백 조회
+          if (error && (error.code === '42703' || /status|category/.test(error.message || ''))) {
+            console.warn('[게시판] status/category 컬럼 미존재 → 폴백 조회. Supabase posts 테이블에 컬럼을 추가해 주세요.');
             const fb = await sb.from('posts')
               .select('id, title, content, created_at')
               .order('created_at', { ascending: false });
@@ -1393,26 +1527,8 @@
           }
           if (error) throw error;
           listLoading.style.display = 'none';
-          if (!data || data.length === 0) {
-            listEmpty.style.display = 'block';
-            listEmpty.innerHTML = '<i class="far fa-folder-open"></i>아직 등록된 세무 정보가 없습니다.';
-            return;
-          }
-          postListEl.style.display = 'flex';
-          data.forEach(post => {
-            const li = document.createElement('li');
-            li.className = 'post-card';
-            const excerpt = htmlToText(post.content);
-            const isDraft = post.status === 'draft';
-            const draftBadge = (isAdmin() && isDraft) ? '<span class="draft-badge"><i class="fas fa-box-archive"></i> 임시저장</span>' : '';
-            const imgIcon = hasImage(post.content) ? ' · <i class="far fa-image"></i> 사진' : '';
-            li.innerHTML = `
-              <h3>${escapeHtml(post.title)}${draftBadge}</h3>
-              <p class="post-excerpt">${escapeHtml(excerpt) || '<em>(내용 없음)</em>'}</p>
-              <div class="post-meta"><i class="far fa-calendar"></i> ${fmtDate(post.created_at)}${imgIcon}</div>`;
-            li.addEventListener('click', () => openDetail(post));
-            postListEl.appendChild(li);
-          });
+          allPosts = data || [];
+          renderPosts();
         } catch (err) {
           console.error('[게시판] 목록 로드 실패:', err);
           listLoading.style.display = 'none';
@@ -1421,13 +1537,67 @@
         }
       }
 
+      // --- 선택된 카테고리로 걸러서 카드 그리기 ---
+      function renderPosts() {
+        postListEl.innerHTML = '';
+        const list = currentCategory
+          ? allPosts.filter(p => p.category === currentCategory)
+          : allPosts;
+        if (list.length === 0) {
+          postListEl.style.display = 'none';
+          listEmpty.style.display = 'block';
+          listEmpty.innerHTML = '<i class="far fa-folder-open"></i>' + (currentCategory
+            ? `‘${escapeHtml(currentCategory)}’ 카테고리에 등록된 글이 아직 없습니다.`
+            : '아직 등록된 세무 정보가 없습니다.');
+          return;
+        }
+        listEmpty.style.display = 'none';
+        postListEl.style.display = 'grid';
+        list.forEach(post => postListEl.appendChild(buildPostCard(post)));
+      }
+
+      // --- 카드 1장: 대표 이미지 + 카테고리 배지 + 제목 + 작성일 + 내용 미리보기 ---
+      function buildPostCard(post) {
+        const li = document.createElement('li');
+        li.className = 'post-card';
+        const thumb = firstImageSrc(post.content);
+        const excerpt = htmlToText(post.content);
+        const isDraft = post.status === 'draft';
+        const draftBadge = (isAdmin() && isDraft) ? '<span class="draft-badge"><i class="fas fa-box-archive"></i> 임시저장</span>' : '';
+        const catBadge = post.category ? `<span class="cat-badge">${escapeHtml(post.category)}</span>` : '';
+        li.innerHTML = `
+          <div class="post-thumb">${thumb ? `<img src="${escapeHtml(thumb)}" alt="" loading="lazy" />` : ''}</div>
+          <div class="post-card-body">
+            ${catBadge}
+            <h3>${escapeHtml(post.title)}${draftBadge}</h3>
+            <div class="post-meta"><i class="far fa-calendar"></i> ${fmtDate(post.created_at)}</div>
+            <p class="post-excerpt">${escapeHtml(excerpt) || '<em>(내용 없음)</em>'}</p>
+          </div>`;
+        const thumbEl = li.querySelector('.post-thumb');
+        const img = thumbEl.querySelector('img');
+        // 사진이 없거나 불러오지 못하면 카테고리 이름 카드로 대체
+        if (img) img.addEventListener('error', () => setThumbFallback(thumbEl, post.category));
+        else setThumbFallback(thumbEl, post.category);
+        li.addEventListener('click', () => openDetail(post));
+        return li;
+      }
+      function setThumbFallback(thumbEl, category) {
+        const c = catInfo(category);
+        thumbEl.classList.add('is-fallback');
+        thumbEl.innerHTML = `
+          <span class="thumb-icon"><i class="fas ${c.icon}" aria-hidden="true"></i></span>
+          <span class="thumb-name">${escapeHtml(c.name)}</span>
+          <span class="thumb-en">${escapeHtml(c.en)}</span>`;
+      }
+
       // --- 상세 열기 (HTML 서식·사진 렌더링) ---
       function openDetail(post) {
         currentPost = post;
         const isDraft = post.status === 'draft';
         detailTitle.innerHTML = escapeHtml(post.title || '') +
           ((isAdmin() && isDraft) ? ' <span class="draft-badge"><i class="fas fa-box-archive"></i> 임시저장</span>' : '');
-        detailMeta.innerHTML = `<i class="far fa-calendar"></i> ${fmtDate(post.created_at)}`;
+        detailMeta.innerHTML = (post.category ? `<span class="cat-badge">${escapeHtml(post.category)}</span>` : '') +
+          `<i class="far fa-calendar"></i> ${fmtDate(post.created_at)}`;
         // Quill 로 작성한 HTML 을 그대로 렌더링 (ql-editor 클래스로 서식 보존)
         detailBody.className = 'post-body ql-editor';
         detailBody.innerHTML = post.content || '';
@@ -1441,6 +1611,7 @@
         editingId = null;
         formTitleEl.textContent = '새 글 작성';
         fTitle.value = '';
+        fCategory.value = '';
         const q = ensureQuill();
         if (q) q.setContents([]); // 비우기
         showForm();
@@ -1451,6 +1622,7 @@
         editingId = currentPost.id;
         formTitleEl.textContent = (currentPost.status === 'draft') ? '임시저장 글 이어쓰기' : '글 수정';
         fTitle.value = currentPost.title || '';
+        fCategory.value = currentPost.category || '';   // 기존 카테고리 선택 상태로 표시
         const q = ensureQuill();
         if (q) {
           // 기존 HTML 을 에디터에 로드
@@ -1471,10 +1643,15 @@
       async function savePost(status) {
         if (!isAdmin()) { alert('운영자만 작성할 수 있습니다.'); return; }
         const title = fTitle.value.trim();
+        const category = fCategory.value || null;
         const q = ensureQuill();
         const content = q ? q.root.innerHTML : '';
 
         if (!title) { alert('제목을 입력해 주세요.'); return; }
+        // 정식 등록은 카테고리 필수, 임시저장은 나중에 골라도 됨
+        if (status === 'published' && !category) {
+          alert('카테고리를 선택해 주세요.'); fCategory.focus(); return;
+        }
         // 정식 등록은 내용 필수, 임시저장은 내용 없어도 허용
         if (status === 'published' && editorIsEmpty()) {
           alert('내용을 입력해 주세요.'); return;
@@ -1487,9 +1664,9 @@
         try {
           let error;
           if (editingId) {
-            ({ error } = await sb.from('posts').update({ title, content, status }).eq('id', editingId));
+            ({ error } = await sb.from('posts').update({ title, content, status, category }).eq('id', editingId));
           } else {
-            ({ error } = await sb.from('posts').insert({ title, content, status }));
+            ({ error } = await sb.from('posts').insert({ title, content, status, category }));
           }
           if (error) throw error;
           btnSave.disabled = false; btnDraft.disabled = false;
@@ -1499,7 +1676,7 @@
           showList(); // 목록으로 복귀 (최신순이라 새 글이 위로)
         } catch (err) {
           console.error('[게시판] 저장 실패:', err);
-          alert('저장에 실패했습니다.\n운영자 권한 또는 네트워크 상태를 확인해 주세요.\n(status 컬럼이 posts 테이블에 있는지도 확인해 주세요)');
+          alert('저장에 실패했습니다.\n운영자 권한 또는 네트워크 상태를 확인해 주세요.\n(status·category 컬럼이 posts 테이블에 있는지도 확인해 주세요)');
           btnSave.disabled = false; btnDraft.disabled = false;
           btnSave.innerHTML = originalSave; btnDraft.innerHTML = originalDraft;
         }
@@ -1548,6 +1725,10 @@
         // 작성/수정/상세에 있었다면 목록으로
         showList();
       }
+
+      // --- 카테고리 필터 버튼 · 글쓰기 드롭다운 채우기 ---
+      buildCatFilter();
+      CATEGORIES.forEach(c => fCategory.add(new Option(c.name, c.name)));
 
       // --- 이벤트 바인딩 ---
       btnGoogleLogin.addEventListener('click', doGoogleLogin);
