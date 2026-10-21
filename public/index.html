@@ -488,7 +488,11 @@
       padding: 130px 0 36px; color: #fff; margin-bottom: 34px;
       background: linear-gradient(rgba(44,30,64,0.86), rgba(61,43,86,0.80)), url('assets/hero-bg.jpg') center/cover no-repeat;
     }
-    .board-crumb { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: rgba(255,255,255,0.65); margin-bottom: 16px; }
+    .board-topline {
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+      gap: 12px; min-height: 34px; margin-bottom: 16px;
+    }
+    .board-crumb { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: rgba(255,255,255,0.65); }
     .board-crumb a { color: rgba(255,255,255,0.65); transition: color 0.2s; }
     .board-crumb a:hover { color: var(--gold-light); }
     .board-crumb i { font-size: 0.6rem; }
@@ -505,19 +509,25 @@
     .board-hero h2 .accent { color: var(--gold-light); }
     .board-sub { margin-top: 12px; color: rgba(255,255,255,0.85); font-size: 1rem; font-weight: 300; word-break: keep-all; }
 
-    /* 로그인/관리 바 */
-    .board-authbar {
-      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
-      gap: 14px; background: #fff; border: 1px solid var(--lavender);
-      border-radius: 14px; padding: 16px 20px; margin-bottom: 26px;
-      box-shadow: 0 6px 20px rgba(61,43,86,0.05);
+    /* 로그인 상태 표시 (보라색 영역 오른쪽 위, 로그인했을 때만) */
+    .board-admin { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .board-admin .admin-badge {
+      display: inline-flex; align-items: center; gap: 6px; color: var(--gold-light);
+      font-size: 0.82rem; font-weight: 700; margin-right: 4px;
     }
-    .board-authbar .auth-info { display: flex; align-items: center; gap: 12px; font-size: 0.95rem; color: var(--plum); }
-    .board-authbar .auth-info .admin-badge {
-      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
-      color: #fff; font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+    .board-admin .auth-email { color: rgba(255,255,255,0.75); font-size: 0.85rem; margin-right: 4px; }
+    .board-admin .btn-board { padding: 7px 14px; font-size: 0.82rem; border-radius: 999px; }
+    .btn-board-ghost { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.25); }
+    .btn-board-ghost:hover { border-color: var(--gold-light); background: rgba(255,255,255,0.16); }
+
+    /* 로그아웃 상태: 게시판 맨 아래 작은 관리자 로그인 링크 */
+    .board-login-foot { text-align: center; margin-top: 56px; }
+    .admin-login-link {
+      background: none; border: none; cursor: pointer; font-family: inherit;
+      color: #b3a9c4; font-size: 0.8rem; padding: 6px 10px; transition: color 0.2s;
     }
-    .board-authbar .auth-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .admin-login-link:hover { color: var(--plum); }
+    .admin-login-link i { font-size: 0.75rem; margin-right: 3px; }
 
     .btn-board {
       display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
@@ -532,11 +542,6 @@
     .btn-board-outline:hover { border-color: var(--gold); color: var(--gold-dark); }
     .btn-board-danger { background: #fff; color: #c0392b; border: 1.5px solid #e9c3bd; }
     .btn-board-danger:hover { background: #c0392b; color: #fff; border-color: #c0392b; }
-    .btn-board-google {
-      background: #fff; color: #3c4043; border: 1.5px solid #dadce0;
-    }
-    .btn-board-google:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); transform: translateY(-2px); }
-    .btn-board-google .g-ico { width: 18px; height: 18px; display: inline-block; }
 
     /* 카테고리 필터 (보라색 배경 위) */
     .cat-filter { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 30px; }
@@ -685,9 +690,6 @@
       .board-hero { padding: 100px 0 26px; margin-bottom: 24px; }
       .board-sub { font-size: 0.93rem; }
       .post-detail, .post-form { padding: 26px 20px; }
-      .board-authbar { padding: 14px 16px; }
-      .board-authbar .auth-actions { width: 100%; }
-      .board-authbar .auth-actions .btn-board { flex: 1; justify-content: center; }
       .post-detail-actions .btn-board, .post-form-actions .btn-board { flex: 1; justify-content: center; }
       /* 필터 버튼: 한 줄로 두고 옆으로 밀어서 보기 (화면 끝까지 붙여 넘김이 보이게) */
       .cat-filter {
@@ -1013,7 +1015,11 @@
     <!-- 상단: 홈 첫 화면과 같은 보라색 배경 -->
     <div class="board-hero">
       <div class="container">
-        <nav class="board-crumb" aria-label="현재 위치"><a href="#">홈</a><i class="fas fa-chevron-right" aria-hidden="true"></i><span>세무 정보</span></nav>
+        <div class="board-topline">
+          <nav class="board-crumb" aria-label="현재 위치"><a href="#">홈</a><i class="fas fa-chevron-right" aria-hidden="true"></i><span>세무 정보</span></nav>
+          <!-- 로그인한 경우에만 표시 (운영자: 글쓰기·로그아웃) -->
+          <div class="board-admin" id="boardAdminBar" style="display:none"></div>
+        </div>
         <span class="board-eyebrow"><i class="fas fa-book-open" aria-hidden="true"></i> 호텔·숙박업 세무 칼럼</span>
         <h2>세무 <span class="accent">정보</span></h2>
         <p class="board-sub">호텔·숙박업 사장님을 위한 세무 소식과 절세 정보를 전해드립니다.</p>
@@ -1021,21 +1027,6 @@
       </div>
     </div>
     <div class="container board-body">
-
-      <!-- 로그인/관리 바 -->
-      <div class="board-authbar">
-        <div class="auth-info" id="authInfo">
-          <span id="authGuestText"><i class="fas fa-user-circle" style="color:var(--plum-light)"></i> 방문자로 열람 중입니다.</span>
-        </div>
-        <div class="auth-actions" id="authActions">
-          <button class="btn-board btn-board-google" id="btnGoogleLogin">
-            <span class="g-ico" aria-hidden="true">
-              <svg viewBox="0 0 48 48" width="18" height="18"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-            </span>
-            구글 로그인
-          </button>
-        </div>
-      </div>
 
       <!-- 뷰 1: 목록 -->
       <div id="boardList">
@@ -1084,6 +1075,11 @@
             <button type="button" class="btn-board btn-board-outline" id="btnCancel">취소</button>
           </div>
         </form>
+      </div>
+
+      <!-- 로그아웃 상태에서만 표시: 운영자용 작은 로그인 링크 -->
+      <div class="board-login-foot" id="boardLoginFoot">
+        <button type="button" class="admin-login-link" id="btnGoogleLogin"><i class="fas fa-lock" aria-hidden="true"></i> 관리자 로그인</button>
       </div>
     </div>
   </section>
@@ -1277,8 +1273,8 @@
       const detailBody    = document.getElementById('detailBody');
       const detailActions = document.getElementById('detailActions');
 
-      const authGuestText = document.getElementById('authGuestText');
-      const authActions   = document.getElementById('authActions');
+      const adminBar      = document.getElementById('boardAdminBar');
+      const loginFoot     = document.getElementById('boardLoginFoot');
       const btnGoogleLogin= document.getElementById('btnGoogleLogin');
 
       const postForm      = document.getElementById('postForm');
@@ -1436,25 +1432,24 @@
       }
 
       // --- 인증 UI 갱신 ---
+      // 로그인: 보라색 영역 오른쪽 위에 운영자 표시·글쓰기·로그아웃 / 로그아웃: 맨 아래 '관리자 로그인' 링크만
       function renderAuthBar() {
         if (currentUser) {
           const admin = isAdmin();
-          authGuestText.innerHTML = admin
-            ? `<i class="fas fa-user-shield" style="color:var(--gold-dark)"></i> ${escapeHtml(currentUser.email)} <span class="admin-badge">운영자</span>`
-            : `<i class="fas fa-user-circle" style="color:var(--plum-light)"></i> ${escapeHtml(currentUser.email)} 님`;
-          let html = '';
-          if (admin) {
-            html += `<button class="btn-board btn-board-gold" id="btnNew"><i class="fas fa-pen-to-square"></i> 글쓰기</button>`;
-          }
-          html += `<button class="btn-board btn-board-outline" id="btnLogout"><i class="fas fa-right-from-bracket"></i> 로그아웃</button>`;
-          authActions.innerHTML = html;
+          let html = admin
+            ? `<span class="admin-badge" title="${escapeHtml(currentUser.email)}"><i class="fas fa-user-shield"></i> 운영자</span>
+               <button class="btn-board btn-board-gold" id="btnNew"><i class="fas fa-pen-to-square"></i> 글쓰기</button>`
+            : `<span class="auth-email">${escapeHtml(currentUser.email)} 님</span>`;
+          html += `<button class="btn-board btn-board-ghost" id="btnLogout"><i class="fas fa-right-from-bracket"></i> 로그아웃</button>`;
+          adminBar.innerHTML = html;
+          adminBar.style.display = 'flex';
+          loginFoot.style.display = 'none';
           if (admin) document.getElementById('btnNew').addEventListener('click', openNewForm);
           document.getElementById('btnLogout').addEventListener('click', doLogout);
         } else {
-          authGuestText.innerHTML = `<i class="fas fa-user-circle" style="color:var(--plum-light)"></i> 방문자로 열람 중입니다.`;
-          authActions.innerHTML = '';
-          authActions.appendChild(btnGoogleLogin);
-          btnGoogleLogin.style.display = '';
+          adminBar.innerHTML = '';
+          adminBar.style.display = 'none';
+          loginFoot.style.display = '';
         }
         // 상세 화면 수정/삭제 버튼 노출
         if (detailActions) detailActions.style.display = isAdmin() ? 'flex' : 'none';
