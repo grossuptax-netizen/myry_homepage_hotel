@@ -755,6 +755,11 @@
       font-size: 1.1rem; line-height: 26px; cursor: pointer; padding: 0;
     }
     .photo-slot-remove:hover { background: var(--gold-dark); color: #fff; }
+    /* Cloudinary 로 옮기는 중인 붙여넣은 사진 */
+    .post-form .ql-editor img[data-import="uploading"] {
+      opacity: 0.45; outline: 2px dashed var(--gold); outline-offset: 2px; min-width: 120px; min-height: 60px;
+      background: repeating-linear-gradient(45deg, #fffaf0, #fffaf0 8px, #f6eedc 8px, #f6eedc 16px);
+    }
     .post-detail .photo-slot { cursor: default; }
     .post-detail .photo-slot-remove { display: none; }
     /* 링크 카드 (네이버 링크 카드처럼: 왼쪽 썸네일 + 제목·설명·주소) */
@@ -1528,6 +1533,10 @@
         toolbarEl.after(linkCardBar);   // 주소 입력칸을 툴바 바로 아래로
         // 붙여넣기는 직접 처리 (Quill 기본 처리보다 먼저 실행되도록 capture 단계)
         quill.root.addEventListener('paste', onEditorPaste, true);
+        // 사진 파일 붙여넣기·끌어다 놓기 등으로 들어온 외부 사진도 Cloudinary 로 옮기기
+        quill.on('text-change', (delta, _old, source) => {
+          if (source === 'user' && delta.ops.some(op => op.insert && typeof op.insert === 'object' && op.insert.image)) scheduleImport();
+        });
         quill.root.addEventListener('click', onPhotoSlotClick);
         quill.root.addEventListener('click', onLinkCardClick);
         return quill;
@@ -1862,7 +1871,9 @@
         delta.ops.forEach(op => {
           if (op.insert && typeof op.insert === 'object' && typeof op.insert.image === 'string') {
             const src = unwrapProxyImage(op.insert.image);
-            if (isBlockedImage(src)) {
+            // 네이버 사진도 그대로 두면 붙여넣은 직후 Cloudinary 로 옮겨짐(importExternalImages).
+            // Cloudinary 를 쓸 수 없는 경우(운영자 아님 등)에만 바로 '사진 자리' 표시
+            if (isBlockedImage(src) && !isAdmin()) {
               removedImages++;
               out.insert({ photoSlot: String(slotNoStart + removedImages) });   // 사진이 있던 자리 표시
               return;
@@ -1903,9 +1914,12 @@
           showEditorNotice(`네이버 등 외부에서 복사한 사진 ${removedImages}장은 이 사이트에서 보이지 않아 ‘사진 자리’ 표시로 바꿨습니다. ` +
             `이미지를 다시 업로드하세요 — 표시를 누르면 바로 그 자리에 올라갑니다.`);
         }
+        scheduleImport();   // 남아 있는 외부 사진은 Cloudinary 로 옮기기
       }
-      function showEditorNotice(msg) {
-        editorNotice.innerHTML = `<i class="fas fa-triangle-exclamation" aria-hidden="true"></i><span>${escapeHtml(msg)}</span>` +
+      // kind: 'warn'(기본, 노란 경고) | 'busy'(진행 중) | 'done'(완료)
+      function showEditorNotice(msg, kind = 'warn') {
+        const icon = { warn: 'fa-triangle-exclamation', busy: 'fa-spinner fa-spin', done: 'fa-circle-check' }[kind] || 'fa-triangle-exclamation';
+        editorNotice.innerHTML = `<i class="fas ${icon}" aria-hidden="true"></i><span>${escapeHtml(msg)}</span>` +
           `<button type="button" aria-label="안내 닫기">&times;</button>`;
         editorNotice.querySelector('button').addEventListener('click', hideEditorNotice);
         editorNotice.classList.add('on');
@@ -1915,7 +1929,107 @@
         editorNotice.innerHTML = '';
       }
 
-      // --- 사진 업로드 핸들러 (Supabase Storage) ---
+      // --- Cloudinary 사진 저장 (정육점 사이트와 같은 계정, 이 사이트 사진은 'myhoteltax' 폴더) ---
+      // 서버(/api/cloudinary/sign)가 운영자인지 확인한 뒤 업로드 서명을 주고, 화면이 Cloudinary 에 직접 올림.
+      // file 자리에 사진 주소(https://…)를 넘기면 Cloudinary 서버가 그 주소에서 직접 가져옴 (붙여넣은 외부 사진 옮기기)
+      let cloudinarySign = null;   // 서명 재사용 (Cloudinary 서명은 1시간 유효 → 30분 지나면 새로 받음)
+      async function getCloudinarySign() {
+        if (cloudinarySign && Date.now() - cloudinarySign.at < 30 * 60 * 1000) return cloudinarySign;
+        const { data } = await sb.auth.getSession();
+        const token = data && data.session ? data.session.access_token : '';
+        const res = await fetch('/api/cloudinary/sign', { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
+        const json = await res.json().catch(() => null);
+        if (!res.ok || !json || !json.ok) throw new Error((json && json.error) || `업로드 서명을 받지 못했습니다 (HTTP ${res.status})`);
+        cloudinarySign = { ...json, at: Date.now() };
+        return cloudinarySign;
+      }
+      async function uploadToCloudinary(source) {
+        const s = await getCloudinarySign();
+        const form = new FormData();
+        form.append('file', source);
+        form.append('folder', s.folder);
+        if (s.signed) {
+          form.append('api_key', s.apiKey);
+          form.append('timestamp', s.timestamp);
+          form.append('signature', s.signature);
+        } else {
+          form.append('upload_preset', s.uploadPreset);
+        }
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${s.cloudName}/image/upload`, { method: 'POST', body: form });
+        const json = await res.json().catch(() => null);
+        if (!res.ok || !json || !json.secure_url) {
+          cloudinarySign = null;   // 서명 문제일 수 있으니 다음엔 새로 받음
+          throw new Error((json && json.error && json.error.message) || `Cloudinary 업로드 실패 (HTTP ${res.status})`);
+        }
+        return json.secure_url;
+      }
+      const isCloudinaryUrl = (u) => /^https:\/\/res\.cloudinary\.com\//i.test(String(u || ''));
+      const isOwnStorageUrl = (u) => String(u || '').startsWith(SUPABASE_URL + '/storage/');
+
+      // --- 붙여넣은 외부 사진(네이버 등)을 Cloudinary 로 옮기고 글 속 주소를 교체 ---
+      // 옮기는 동안 사진에 data-import="uploading" 표시 → 저장은 잠시 막음. 실패하면 '사진 자리' 표시로 바꿔 직접 올리게.
+      const importStats = { done: 0, failed: 0 };
+      let importTimer = null;
+      function scheduleImport() {
+        clearTimeout(importTimer);
+        importTimer = setTimeout(importExternalImages, 50);
+      }
+      async function importExternalImages() {
+        if (!quill || !isAdmin()) return;
+        const targets = [...quill.root.querySelectorAll('img')].filter(img => {
+          const src = img.getAttribute('src') || '';
+          return src && !img.closest('.link-card') && !img.hasAttribute('data-import') &&
+            !isCloudinaryUrl(src) && !isOwnStorageUrl(src) && !src.startsWith('blob:');
+        });
+        if (!targets.length) return;
+        if (!quill.root.querySelector('img[data-import]')) { importStats.done = 0; importStats.failed = 0; }
+        targets.forEach(img => img.setAttribute('data-import', 'uploading'));
+        updateImportNotice();
+        const queue = targets.slice();
+        const worker = async () => {   // 동시에 3장씩
+          while (queue.length) {
+            const img = queue.shift();
+            const src = unwrapProxyImage(img.getAttribute('src') || '');
+            try {
+              const url = await uploadToCloudinary(src);
+              if (quill.root.contains(img)) {
+                img.setAttribute('src', url);
+                img.removeAttribute('data-import');
+              }
+              importStats.done++;
+            } catch (err) {
+              console.warn('[게시판] 붙여넣은 사진 옮기기 실패:', src.slice(0, 120), err);
+              importStats.failed++;
+              replaceWithPhotoSlot(img);
+            }
+            updateImportNotice();
+          }
+        };
+        await Promise.all(Array.from({ length: Math.min(3, queue.length) }, worker));
+      }
+      function replaceWithPhotoSlot(img) {
+        const blot = Quill.find(img);
+        if (!blot || !quill.root.contains(img)) return;
+        const index = quill.getIndex(blot);
+        const n = quill.root.querySelectorAll('.photo-slot').length + 1;
+        quill.deleteText(index, 1, 'user');
+        quill.insertEmbed(index, 'photoSlot', String(n), 'user');
+      }
+      function updateImportNotice() {
+        const left = quill ? quill.root.querySelectorAll('img[data-import="uploading"]').length : 0;
+        const { done, failed } = importStats;
+        if (left) {
+          showEditorNotice(`붙여넣은 사진을 Cloudinary(myhoteltax 폴더)로 옮기는 중입니다… 남은 사진 ${left}장 · 완료 ${done}장` +
+            (failed ? ` · 실패 ${failed}장` : '') + '. 끝날 때까지 저장을 기다려 주세요.', 'busy');
+        } else if (failed) {
+          showEditorNotice((done ? `붙여넣은 사진 ${done}장은 Cloudinary 로 옮겼고, ${failed}장은` : `붙여넣은 사진 ${failed}장을`) +
+            ' 가져오지 못해 ‘사진 자리’ 표시로 바꿨습니다. 이미지를 다시 업로드하세요 — 표시를 누르면 바로 그 자리에 올라갑니다.');
+        } else if (done) {
+          showEditorNotice(`붙여넣은 사진 ${done}장을 Cloudinary(myhoteltax 폴더)로 옮기고 글 속 주소를 바꿨습니다.`, 'done');
+        }
+      }
+
+      // --- 사진 업로드 핸들러 (Cloudinary, 안 되면 기존 Supabase Storage) ---
       function imageHandler() {
         if (!isAdmin()) { alert('운영자만 사진을 업로드할 수 있습니다.'); return; }
         pickImageFiles(uploadImages);
@@ -1946,13 +2060,25 @@
         return done;
       }
 
-      // 사진 1장을 Supabase Storage 에 올리고 공개 주소를 돌려줌 (실패하면 알림 후 null)
+      // 사진 1장 올리고 주소 돌려주기 (카메라 버튼·사진 자리·링크 카드 썸네일 공통)
+      // Cloudinary(myhoteltax 폴더)에 올리고, Cloudinary 를 쓸 수 없으면 기존 Supabase Storage 에 올린 뒤 안내
       async function uploadImageFile(file) {
+        if (!file.type.startsWith('image/')) {
+          alert('이미지 파일만 업로드할 수 있습니다: ' + file.name);
+          return null;
+        }
         try {
-          if (!file.type.startsWith('image/')) {
-            alert('이미지 파일만 업로드할 수 있습니다: ' + file.name);
-            return null;
-          }
+          return await uploadToCloudinary(file);
+        } catch (err) {
+          console.warn('[게시판] Cloudinary 업로드 실패 → 기존 저장소로:', err);
+          const url = await uploadToSupabase(file);
+          if (url) showEditorNotice(`Cloudinary 에 올리지 못해 이 사진은 기존 사진 저장소에 올렸습니다. (${err && err.message ? err.message : err})`);
+          return url;
+        }
+      }
+      // 사진 1장을 Supabase Storage 에 올리고 공개 주소를 돌려줌 (실패하면 알림 후 null)
+      async function uploadToSupabase(file) {
+        try {
           const ext = (file.name.split('.').pop() || 'png').toLowerCase().replace(/[^a-z0-9]/g, '') || 'png';
           const path = `posts/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
           const { error: upErr } = await sb.storage.from(STORAGE_BUCKET).upload(path, file, {
@@ -2248,6 +2374,11 @@
         const content = q ? q.root.innerHTML : '';
 
         if (!title) { alert('제목을 입력해 주세요.'); return; }
+        // 붙여넣은 사진을 Cloudinary 로 옮기는 중이면 잠시 기다리게 (임시저장 포함)
+        if (q && q.root.querySelector('img[data-import="uploading"]')) {
+          alert('붙여넣은 사진을 Cloudinary 로 옮기는 중입니다.\n안내가 끝난 뒤 다시 저장해 주세요.');
+          return;
+        }
         // 정식 등록은 카테고리 필수, 임시저장은 나중에 골라도 됨
         if (status === 'published' && !category) {
           alert('카테고리를 선택해 주세요.'); fCategory.focus(); return;
