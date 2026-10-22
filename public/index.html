@@ -2,6 +2,8 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
+  <!-- 글 주소(/column/…)에서도 사진·아이콘·메뉴(#…) 링크가 사이트 첫 화면 기준으로 열리도록 -->
+  <base href="/" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>명륜세무회계 | 호텔·숙박업 전문 세무사 사무실</title>
   <meta name="description" content="명륜세무회계 - 호텔, 모텔, 펜션 등 숙박업 전문 세무 기장, 종합소득세·부가가치세 신고, 절세 컨설팅 전문 세무사 사무실" />
@@ -577,6 +579,7 @@
       box-shadow: 0 4px 14px rgba(61,43,86,0.04);
     }
     .post-card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(61,43,86,0.12); border-color: var(--gold-light); }
+    .post-card-link { flex: 1; display: flex; flex-direction: column; color: inherit; text-decoration: none; }
     .post-thumb {
       position: relative; aspect-ratio: 16 / 10; overflow: hidden;
       background: var(--lavender); border-bottom: 5px solid var(--gold);
@@ -637,6 +640,10 @@
     .post-detail .post-body ul, .post-detail .post-body ol { padding-left: 1.6em; margin: 0 0 1em; }
     .post-detail .post-body li { margin-bottom: 0.3em; }
     .post-detail .post-body h1, .post-detail .post-body h2, .post-detail .post-body h3 { color: var(--plum); margin: 1em 0 0.5em; line-height: 1.3; }
+    /* 소제목(h2): 글쓰기·글 화면 공통 */
+    .post-detail .post-body h2, .post-form .ql-editor h2 {
+      font-size: 1.35rem; font-weight: 800; color: var(--plum); line-height: 1.4; margin: 1.4em 0 0.6em;
+    }
     .post-detail .post-body a { color: var(--gold-dark); text-decoration: underline; }
     /* 인용구 (글쓰기·상세 공통): 네이버 기본 인용구처럼 테두리 상자 + 위아래 큰따옴표 + 가운데 정렬 + 나눔명조.
        편집기는 줄마다 <blockquote> 를 따로 만들므로, 이어진 줄을 한 상자로 보이게 첫 줄/마지막 줄에만 위·아래 테두리와 따옴표 */
@@ -761,6 +768,22 @@
     }
     .clip-alt { margin-top: 6px; color: #7a6b90; }
     .clip-alt .btn-board { padding: 3px 10px; font-size: 0.8rem; }
+    /* 검색 최적화(SEO) 설정 */
+    .seo-box { margin-top: 18px; border: 1.5px solid var(--gold-light); border-radius: 12px; background: #fffcf5; }
+    .seo-box summary { cursor: pointer; padding: 12px 16px; font-weight: 700; color: var(--plum); }
+    .seo-box summary i { margin-right: 6px; color: var(--gold-dark); }
+    .seo-summary { margin-left: 6px; font-size: 0.8rem; font-weight: 500; color: #9a8fb0; }
+    .seo-body { padding: 0 16px 14px; }
+    .seo-field + .seo-field { margin-top: 14px; }
+    .seo-label-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+    .post-form .seo-label-row label { margin: 0; }
+    .post-form .seo-field textarea { min-height: 84px; }
+    .seo-state { display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; }
+    .seo-badge { padding: 2px 8px; border-radius: 999px; background: #efeaf5; color: #6b5a85; font-weight: 700; }
+    .seo-badge.is-manual { background: var(--gold-light); color: var(--plum); }
+    .seo-state button { border: none; background: none; padding: 0; color: var(--gold-dark); font-size: 0.78rem; font-weight: 700; text-decoration: underline; cursor: pointer; }
+    .seo-help { margin-top: 5px; font-size: 0.8rem; color: #9a8fb0; }
+    .seo-help .is-long { color: #b3261e; font-weight: 700; }
     /* '사진 자리' 표시 (붙여넣기에서 뺀 사진 위치) */
     .photo-slot {
       position: relative; display: flex; align-items: center; justify-content: center; gap: 10px;
@@ -896,7 +919,7 @@
         <a href="#services" class="menu-link">서비스소개</a>
         <a href="#benefits" class="menu-link">강점</a>
         <a href="#reviews" class="menu-link">고객후기</a>
-        <a href="#board" class="menu-link">세무 정보</a>
+        <a href="/column" class="menu-link">세무 정보</a>
         <a href="#contact" class="menu-link">상담문의</a>
       </nav>
       <a href="#contact" class="nav-tel"><i class="fas fa-comments"></i> 무료 세무 상담받기</a>
@@ -911,7 +934,7 @@
     <a href="#services">서비스소개</a>
     <a href="#benefits">강점</a>
     <a href="#reviews">고객후기</a>
-    <a href="#board">세무 정보</a>
+    <a href="/column">세무 정보</a>
     <a href="#contact">상담문의</a>
     <a href="#contact" class="btn btn-gold"><i class="fas fa-comments"></i> 무료 세무 상담받기</a>
   </aside>
@@ -1198,7 +1221,7 @@
     <div class="board-hero">
       <div class="container">
         <div class="board-topline">
-          <nav class="board-crumb" aria-label="현재 위치"><a href="#">홈</a><i class="fas fa-chevron-right" aria-hidden="true"></i><span>세무 정보</span></nav>
+          <nav class="board-crumb" aria-label="현재 위치"><a href="/">홈</a><i class="fas fa-chevron-right" aria-hidden="true"></i><span>세무 정보</span></nav>
           <!-- 로그인한 경우에만 표시 (운영자: 글쓰기·로그아웃) -->
           <div class="board-admin" id="boardAdminBar" style="display:none"></div>
         </div>
@@ -1283,6 +1306,22 @@
             </details>
             <div id="editorUploading"><i class="fas fa-spinner fa-spin"></i> 사진 업로드 중...</div>
           </div>
+          <!-- 검색 최적화(SEO): 비워 두면 글 제목 / 본문 앞 약 150자를 자동으로 씀 (글쓰기 화면은 운영자만 열 수 있음) -->
+          <details class="seo-box" id="seoBox" open>
+            <summary><i class="fas fa-magnifying-glass" aria-hidden="true"></i> 검색 최적화(SEO) 설정 <span class="seo-summary" id="seoSummary"></span></summary>
+            <div class="seo-body">
+              <div class="seo-field">
+                <div class="seo-label-row"><label for="fSeoTitle">검색 제목</label><span class="seo-state" id="seoTitleState"></span></div>
+                <input type="text" id="fSeoTitle" maxlength="120" placeholder="비워 두면 글 제목을 그대로 씁니다" autocomplete="off" />
+                <p class="seo-help">구글·네이버 검색 결과와 브라우저 탭에 ‘검색 제목 | 명륜세무회계’로 보입니다. <span id="seoTitleCount"></span></p>
+              </div>
+              <div class="seo-field">
+                <div class="seo-label-row"><label for="fSeoDesc">검색 설명</label><span class="seo-state" id="seoDescState"></span></div>
+                <textarea id="fSeoDesc" rows="3" maxlength="300" placeholder="비워 두면 본문 앞부분 약 150자를 씁니다 (사진·빈 줄은 건너뜀)"></textarea>
+                <p class="seo-help">검색 결과에서 제목 아래에 보이는 소개 글입니다. <span id="seoDescCount"></span></p>
+              </div>
+            </div>
+          </details>
           <div class="post-form-actions">
             <button type="submit" class="btn-board btn-board-gold" id="btnSave"><i class="fas fa-check"></i> 등록</button>
             <button type="button" class="btn-board btn-board-plum" id="btnDraft"><i class="fas fa-box-archive"></i> 임시저장</button>
@@ -1514,16 +1553,34 @@
       const FONT_FAMILIES = [false, 'nanumgothic', 'nanummyeongjo', 'nanumpen'];
 
       // 카테고리 목록 (필터 버튼·글쓰기 드롭다운 공통, posts.category 에 이 이름 그대로 저장)
-      // name: 화면 표시·DB 저장값 / en: 기본 카드 영문 표기 / icon: Font Awesome 아이콘
+      // name: 화면 표시·DB 저장값 / slug: 글 주소용 영문 / en: 기본 카드 영문 표기 / icon: Font Awesome 아이콘
+      // (서버 src/column.js 의 CATEGORIES 와 같게 유지)
       const CATEGORIES = [
-        { name: '창업·사업자등록',    en: 'STARTUP',  icon: 'fa-store' },
-        { name: '부가가치세',         en: 'VAT',      icon: 'fa-receipt' },
-        { name: '인건비·노무',        en: 'LABOR',    icon: 'fa-users' },
-        { name: '정부지원금·정책자금', en: 'SUBSIDY',  icon: 'fa-hand-holding-dollar' },
-        { name: '세법개정·시사',      en: 'TAX NEWS', icon: 'fa-newspaper' }
+        { name: '창업·사업자등록',    slug: 'startup',  en: 'STARTUP',  icon: 'fa-store' },
+        { name: '부가가치세',         slug: 'vat',      en: 'VAT',      icon: 'fa-receipt' },
+        { name: '인건비·노무',        slug: 'labor',    en: 'LABOR',    icon: 'fa-users' },
+        { name: '정부지원금·정책자금', slug: 'subsidy',  en: 'SUBSIDY',  icon: 'fa-hand-holding-dollar' },
+        { name: '세법개정·시사',      slug: 'tax-news', en: 'TAX NEWS', icon: 'fa-newspaper' }
       ];
       const catInfo = (name) =>
-        CATEGORIES.find(c => c.name === name) || { name: name || '세무 정보', en: 'TAX INSIGHT', icon: 'fa-file-lines' };
+        CATEGORIES.find(c => c.name === name) || { name: name || '세무 정보', slug: 'general', en: 'TAX INSIGHT', icon: 'fa-file-lines' };
+
+      // --- 글 주소: /column/{분류}/{번호}-{제목} (서버 src/column.js 의 slugify·postPath 와 같게 유지) ---
+      function slugify(title) {
+        const s = String(title || '').normalize('NFC').toLowerCase()
+          .replace(/[^\p{L}\p{N}]+/gu, '-')
+          .replace(/^-+|-+$/g, '')
+          .slice(0, 60)
+          .replace(/-+$/, '');
+        return s || 'post';
+      }
+      const postPath = (post) => `/column/${catInfo(post.category).slug}/${post.id}-${encodeURIComponent(slugify(post.title))}`;
+      function postIdFromSlug(slug) {
+        let s = String(slug || '');
+        try { s = decodeURIComponent(s); } catch (e) { /* 그대로 */ }
+        const m = s.match(/^(\d+)(?:-|$)/);
+        return m ? m[1] : null;
+      }
 
       let currentUser = null;      // 로그인 사용자
       let editingId   = null;      // 수정 중인 글 id (null이면 새 글)
@@ -1554,6 +1611,7 @@
             toolbar: {
               container: [
                 [{ font: FONT_FAMILIES }, { size: FONT_SIZES }],
+                [{ header: 2 }],
                 ['bold', 'italic', 'underline'],
                 [{ color: [] }, { background: [] }],
                 [{ align: [] }],
@@ -1571,7 +1629,8 @@
         });
         // 툴바 버튼에 마우스를 올리면 한글 설명 표시
         const tips = {
-          '.ql-font': '글꼴', '.ql-size': '글씨 크기 (글자를 드래그해 선택한 뒤 고르세요)', '.ql-bold': '굵게', '.ql-italic': '기울임',
+          '.ql-font': '글꼴', '.ql-size': '글씨 크기 (글자를 드래그해 선택한 뒤 고르세요)',
+          '.ql-header': '소제목 (검색엔진이 글의 구조를 알 수 있게 소제목 줄에 사용)', '.ql-bold': '굵게', '.ql-italic': '기울임',
           '.ql-underline': '밑줄', '.ql-color': '글자 색', '.ql-background': '형광펜', '.ql-align': '정렬',
           '.ql-list[value="ordered"]': '번호 목록', '.ql-list[value="bullet"]': '글머리 목록', '.ql-blockquote': '인용구',
           '.ql-image': '사진 넣기', '.ql-linkcard': '링크 카드 넣기 (주소를 넣으면 제목·로고가 자동으로)',
@@ -1590,6 +1649,7 @@
           if (source === 'user' && delta.ops.some(op => op.insert && typeof op.insert === 'object' && op.insert.image)) scheduleImport();
         });
         quill.on('text-change', trackTrimPositions);   // 뺀 꼬리말을 되돌릴 자리 따라가기
+        quill.on('text-change', () => scheduleSeoRefresh());   // 검색 설명(자동)을 본문에 맞춰
         quill.root.addEventListener('click', onPhotoSlotClick);
         quill.root.addEventListener('click', onLinkCardClick);
         return quill;
@@ -1820,7 +1880,7 @@
       // 외부(네이버 블로그·카페 등) 글의 글꼴·크기·글자색·형광펜·굵게·목록·정렬·표·인용구는 살리고,
       // 편집기 버튼 같은 숨은 요소와 깨지는 네이버 사진만 걸러낸다.
       const PASTE_KEEP_FORMATS = ['bold', 'italic', 'underline', 'strike', 'link', 'list', 'indent', 'align', 'table',
-        'blockquote', 'font', 'size', 'color', 'background'];
+        'blockquote', 'font', 'size', 'color', 'background', 'header'];
       // 다른 사이트에서 불러오면 깨지는(외부 사용 차단) 사진 주소
       const BLOCKED_IMAGE_HOSTS = /(^|\.)(pstatic\.net|naver\.net|naver\.com)$/i;
       // 네이버 편집기 등에서 글과 함께 복사되는, 화면에 안 보이는 버튼·안내문
@@ -1990,6 +2050,7 @@
           Object.keys(op.attributes || {}).forEach(k => {
             if (PASTE_KEEP_FORMATS.includes(k)) attrs[k] = op.attributes[k];
           });
+          if (attrs.header) attrs.header = 2;   // 붙여넣은 제목줄(h1~h6)은 모두 소제목(h2)으로 (글 제목 h1 은 하나만)
           if (attrs.color && isDefaultInk(attrs.color)) delete attrs.color;
           if (attrs.background && isBlankPaper(attrs.background)) delete attrs.background;
           if (attrs.table != null) {
@@ -2292,7 +2353,12 @@
             '이 부분을 빼고 넣을까요?\n[확인] 빼고 넣기    [취소] 빼지 않고 모두 넣기');
         }
         const source = !tidied ? { text } : { html: parts ? (cutTail ? parts.main : parts.rest) : tidied };
-        const { delta, removedImages, notLoaded } = cleanPastedDelta(quill.clipboard.convert(source), slotsBefore);
+        const { delta: pasted, removedImages, notLoaded } = cleanPastedDelta(quill.clipboard.convert(source), slotsBefore);
+        // 글 맨 위에 넣는 외부 글(네이버 카페 글 등)은 위쪽에 붙어 보이지 않게 빈 줄 한 칸을 먼저 (이미 빈 줄로 시작하면 그대로)
+        const firstOp = pasted.ops[0];
+        const lead = tidied && range.index === 0 &&
+          !(firstOp && typeof firstOp.insert === 'string' && firstOp.insert.startsWith('\n')) ? 1 : 0;
+        const delta = lead ? new Delta().insert('\n').concat(pasted) : pasted;
         importStats.notLoaded = notLoaded;   // 안내 문구에 함께 표시
         if (notLoaded) showEditorNotice(notLoadedText(notLoaded).trim());
         quill.updateContents(new Delta().retain(range.index).delete(range.length).concat(delta), 'user');
@@ -2302,7 +2368,7 @@
             head: parts.head, headText: parts.headText,
             tail: cutTail ? parts.tail : '', tailLabel: parts.ask ? '글 끝 홍보 영역' : '구분선 아래 홍보 영역',
             tailPreview: parts.tailPreview, tailExtra: parts.tailExtra,
-            start: range.index, mainEnd: range.index + delta.length()
+            start: range.index + lead, mainEnd: range.index + delta.length()   // 인사말은 맨 위 빈 줄 아래로 되돌림
           };
           showTrimNotice();
         }
@@ -2548,14 +2614,113 @@
         return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())}`;
       }
 
+      // --- 검색 제목·설명 규칙 (서버 src/column.js 의 postSeo 와 같게 유지) ---
+      // 검색 제목: seo_title, 없으면 글 제목 / 검색 설명: seo_description, 없으면 본문 앞 약 150자(사진·빈 줄 건너뜀)
+      const SITE_URL = 'https://myhoteltax.com';
+      const SEO_DESC_LEN = 150;
+      const clipText = (s, n) => (s.length > n ? s.slice(0, n - 1).trim() + '…' : s);
+      const autoDescription = (html) => clipText(htmlToText(html || ''), SEO_DESC_LEN);
+      function postSeo(post) {
+        const title = String(post.title || '').trim();
+        return {
+          title: String(post.seo_title || '').trim() || title,
+          desc: String(post.seo_description || '').trim() || autoDescription(post.content) || `${title} - 명륜세무회계`
+        };
+      }
+      // 화면을 옮길 때 <title>·설명·og 태그도 그 화면 값으로 (처음 열 때는 서버가 넣어 줌)
+      function setMetaTag(attr, key, value) {
+        let el = document.head.querySelector(`meta[${attr}="${key}"]`);
+        if (!el) {
+          el = document.createElement('meta');
+          el.setAttribute(attr, key);
+          document.head.appendChild(el);
+        }
+        el.setAttribute('content', value);
+      }
+      function setPageMeta({ title, desc, url, type }) {
+        document.title = title;
+        setMetaTag('name', 'description', desc);
+        setMetaTag('property', 'og:type', type);
+        setMetaTag('property', 'og:title', title);
+        setMetaTag('property', 'og:description', desc);
+        setMetaTag('property', 'og:url', url);
+        setMetaTag('name', 'twitter:title', title);
+        setMetaTag('name', 'twitter:description', desc);
+        let canonical = document.head.querySelector('link[rel="canonical"]');
+        if (!canonical) {
+          canonical = document.createElement('link');
+          canonical.rel = 'canonical';
+          document.head.appendChild(canonical);
+        }
+        canonical.href = url;
+      }
+
       // --- 게시판 모드 진입/이탈 ---
+      const HOME_TITLE = '명륜세무회계 | 호텔·숙박업 전문 세무사 사무실';
+      const HOME_DESC = '명륜세무회계 - 호텔, 모텔, 펜션 등 숙박업 전문 세무 기장, 종합소득세·부가가치세 신고, 절세 컨설팅 전문 세무사 사무실';
+      const LIST_TITLE = '세무 정보 | 명륜세무회계';
+      const LIST_DESC = '호텔·숙박업 사장님을 위한 세무 소식과 절세 정보를 전해드립니다. 창업·사업자등록, 부가가치세, 인건비·노무, 정부지원금, 세법개정 소식까지.';
       function enterBoard() {
         document.body.classList.add('board-mode');
         window.scrollTo(0, 0);
       }
       function leaveBoard() {
         document.body.classList.remove('board-mode');
+        setPageMeta({ title: HOME_TITLE, desc: HOME_DESC, url: SITE_URL + '/', type: 'website' });
       }
+
+      // --- 주소 라우팅: /column = 목록, /column/{분류}/{번호}-{제목} = 글 (서버가 같은 주소로 검색엔진용 HTML 을 줌) ---
+      function goList(push = true) {
+        if (push && location.pathname !== '/column') history.pushState(null, '', '/column');
+        setPageMeta({ title: LIST_TITLE, desc: LIST_DESC, url: SITE_URL + '/column', type: 'website' });
+        enterBoard();
+        showList();
+      }
+      function goPost(post, push = true) {
+        const path = postPath(post);
+        if (push && location.pathname !== path) history.pushState(null, '', path);
+        const seo = postSeo(post);
+        setPageMeta({ title: `${seo.title} | 명륜세무회계`, desc: seo.desc, url: SITE_URL + path, type: 'article' });
+        enterBoard();
+        openDetail(post);
+      }
+      // 주소의 번호로 글 한 편 읽기 (방문자는 등록된 글만)
+      async function fetchPostById(id) {
+        try {
+          let query = sb.from('posts').select('*').eq('id', id);   // seo_title·seo_description 칸이 있으면 함께
+          if (!isAdmin()) query = query.eq('status', 'published');
+          const { data, error } = await query.maybeSingle();
+          if (error) throw error;
+          return data;
+        } catch (err) {
+          console.error('[게시판] 글 읽기 실패:', err);
+          return null;
+        }
+      }
+      async function routeFromLocation() {
+        const path = location.pathname.replace(/\/+$/, '') || '/';
+        if (path === '/column') { goList(false); return; }
+        const m = path.match(/^\/column\/[^/]+\/([^/]+)$/);
+        if (m) {
+          const id = postIdFromSlug(m[1]);
+          const ssr = window.__SSR__ && window.__SSR__.post;
+          let post = ssr && String(ssr.id) === id ? ssr : null;   // 서버가 미리 넣어 준 글
+          if (!post && id) post = await fetchPostById(id);
+          if (post) goPost(post, false);
+          else { history.replaceState(null, '', '/column'); goList(false); }
+          return;
+        }
+        if (location.hash === '#board') { history.replaceState(null, '', '/column'); goList(false); return; }   // 예전 주소
+        leaveBoard();
+      }
+      window.addEventListener('popstate', routeFromLocation);
+      // 메뉴의 '세무 정보'(/column) 는 새로고침 없이 게시판으로
+      document.addEventListener('click', (e) => {
+        const a = e.target.closest('a[href="/column"]');
+        if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        e.preventDefault();
+        goList(true);
+      });
 
       // --- 내부 뷰 전환 (목록/상세/작성) ---
       function showList() {
@@ -2614,8 +2779,19 @@
         const body = parseHtml(html).body;
         body.querySelectorAll('.photo-slot, .link-card').forEach(el => el.remove());   // '사진 자리'·링크 카드 글자는 미리보기에서 제외
         // 문단·표 칸 사이가 붙어 보이지 않도록 공백 하나씩
-        body.querySelectorAll('p, li, td, th, br').forEach(el => el.append(' '));
-        return (body.textContent || '').replace(/\s+/g, ' ').trim();
+        body.querySelectorAll('p, li, td, th, br, h1, h2, h3, blockquote').forEach(el => el.append(' '));
+        return (body.textContent || '').replace(/[​-‍⁠﻿]/g, '').replace(/\s+/g, ' ').trim();
+      }
+      // --- 본문 사진에 설명(alt)이 없으면 '제목 이미지 N' (검색엔진·화면낭독기용, 링크 카드 로고 제외) ---
+      function addImageAlts(html, title) {
+        const body = parseHtml(html).body;
+        let n = 0;
+        body.querySelectorAll('img').forEach(img => {
+          if (img.closest('.link-card')) return;
+          n++;
+          if (!(img.getAttribute('alt') || '').trim()) img.setAttribute('alt', `${title || '세무 정보'} 이미지 ${n}`);
+        });
+        return body.innerHTML;
       }
       // --- 본문에 이미지가 있는지 ---
       function hasImage(html) { return /<img\b/i.test(html || ''); }
@@ -2661,7 +2837,7 @@
           // 일반 방문자: published 만 / 운영자: 전체(draft 포함)
           let query = sb
             .from('posts')
-            .select('id, title, content, created_at, status, category')
+            .select('*')   // id·title·content·created_at·status·category (+ seo_title·seo_description 칸이 있으면 함께)
             .order('created_at', { ascending: false });
           if (!isAdmin()) query = query.eq('status', 'published');
 
@@ -2714,20 +2890,25 @@
         const isDraft = post.status === 'draft';
         const draftBadge = (isAdmin() && isDraft) ? '<span class="draft-badge"><i class="fas fa-box-archive"></i> 임시저장</span>' : '';
         const catBadge = post.category ? `<span class="cat-badge">${escapeHtml(post.category)}</span>` : '';
-        li.innerHTML = `
-          <div class="post-thumb">${thumb ? `<img src="${escapeHtml(thumb)}" alt="" loading="lazy" />` : ''}</div>
+        // 카드 전체가 글 주소 링크 (검색엔진이 따라가고, 새 탭으로도 열 수 있게)
+        li.innerHTML = `<a class="post-card-link" href="${escapeHtml(postPath(post))}">
+          <div class="post-thumb">${thumb ? `<img src="${escapeHtml(thumb)}" alt="${escapeHtml(post.title)}" loading="lazy" />` : ''}</div>
           <div class="post-card-body">
             ${catBadge}
             <h3>${escapeHtml(post.title)}${draftBadge}</h3>
             <div class="post-meta"><i class="far fa-calendar"></i> ${fmtDate(post.created_at)}</div>
             <p class="post-excerpt">${escapeHtml(excerpt) || '<em>(내용 없음)</em>'}</p>
-          </div>`;
+          </div></a>`;
         const thumbEl = li.querySelector('.post-thumb');
         const img = thumbEl.querySelector('img');
         // 사진이 없거나 불러오지 못하면 카테고리 이름 카드로 대체
         if (img) img.addEventListener('error', () => setThumbFallback(thumbEl, post.category));
         else setThumbFallback(thumbEl, post.category);
-        li.addEventListener('click', () => openDetail(post));
+        li.querySelector('.post-card-link').addEventListener('click', (e) => {
+          if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;   // 새 탭 열기는 그대로
+          e.preventDefault();
+          goPost(post);
+        });
         return li;
       }
       function setThumbFallback(thumbEl, category) {
@@ -2749,10 +2930,64 @@
           `<i class="far fa-calendar"></i> ${fmtDate(post.created_at)}`;
         // Quill 로 작성한 HTML 을 그대로 렌더링 (ql-editor 클래스로 서식 보존)
         detailBody.className = 'post-body ql-editor';
-        detailBody.innerHTML = post.content || '';
+        detailBody.innerHTML = addImageAlts(post.content || '', post.title);
         fallbackBrokenCardThumbs(detailBody);
         detailActions.style.display = isAdmin() ? 'flex' : 'none';
         showDetail();
+      }
+
+      // --- 글쓰기의 검색 최적화(SEO) 칸 ---
+      // 손대지 않은 칸은 글 제목·본문을 고치는 대로 자동 값으로 다시 채우고, 저장할 때 null (나중에도 자동 규칙을 따름).
+      // 직접 고친 칸만 seo_title·seo_description 에 저장. 칸을 비우면 다시 자동.
+      const fSeoTitle = document.getElementById('fSeoTitle');
+      const fSeoDesc = document.getElementById('fSeoDesc');
+      const seoManual = { title: false, desc: false };
+      let seoTimer = null;
+      const autoSeoTitle = () => fTitle.value.trim();
+      const autoSeoDesc = () => autoDescription(quill ? quill.root.innerHTML : '');
+      function renderSeoState(key, input, auto, stateId, countId, limit) {
+        const state = document.getElementById(stateId);
+        state.innerHTML = seoManual[key]
+          ? '<span class="seo-badge is-manual">직접 입력</span><button type="button">자동으로 되돌리기</button>'
+          : `<span class="seo-badge">자동 · ${key === 'title' ? '글 제목' : '본문 앞부분'}</span>`;
+        const back = state.querySelector('button');
+        if (back) back.addEventListener('click', () => { seoManual[key] = false; refreshSeo(); });
+        const n = input.value.trim().length;
+        document.getElementById(countId).innerHTML = n > limit
+          ? `<span class="is-long">${n}자 — ${limit}자 이내를 권장합니다</span>` : `${n}자`;
+        input.placeholder = auto ? '' : input.dataset.emptyHint;
+      }
+      // 표시(자동/직접 입력, 글자 수)만 새로
+      function renderSeoStates() {
+        renderSeoState('title', fSeoTitle, autoSeoTitle(), 'seoTitleState', 'seoTitleCount', 60);
+        renderSeoState('desc', fSeoDesc, autoSeoDesc(), 'seoDescState', 'seoDescCount', SEO_DESC_LEN);
+        document.getElementById('seoSummary').textContent =
+          seoManual.title || seoManual.desc ? '· 직접 고친 값 있음' : '· 자동 (글 제목 / 본문 앞 150자)';
+      }
+      // 손대지 않은 칸을 자동 값으로 다시 채우고 표시
+      function refreshSeo() {
+        if (!seoManual.title) fSeoTitle.value = autoSeoTitle();
+        if (!seoManual.desc) fSeoDesc.value = autoSeoDesc();
+        renderSeoStates();
+      }
+      const scheduleSeoRefresh = () => { clearTimeout(seoTimer); seoTimer = setTimeout(refreshSeo, 250); };
+      [[fSeoTitle, 'title', autoSeoTitle], [fSeoDesc, 'desc', autoSeoDesc]].forEach(([input, key, auto]) => {
+        input.dataset.emptyHint = input.placeholder;
+        input.addEventListener('input', () => {   // 입력 중에는 칸 값은 그대로 두고 표시만
+          const v = input.value.trim();
+          seoManual[key] = v !== '' && v !== auto();
+          renderSeoStates();
+        });
+        input.addEventListener('blur', () => { if (!input.value.trim()) { seoManual[key] = false; refreshSeo(); } });
+      });
+      fTitle.addEventListener('input', refreshSeo);
+      // 저장할 값: 직접 고친 칸만, 나머지는 null (자동)
+      function seoValues() {
+        const t = fSeoTitle.value.trim(), d = fSeoDesc.value.trim();
+        return {
+          seo_title: seoManual.title && t && t !== autoSeoTitle() ? t : null,
+          seo_description: seoManual.desc && d && d !== autoSeoDesc() ? d : null
+        };
       }
 
       // --- 새 글 폼 ---
@@ -2762,8 +2997,10 @@
         formTitleEl.textContent = '새 글 작성';
         fTitle.value = '';
         fCategory.value = '';
+        seoManual.title = seoManual.desc = false;
         const q = ensureQuill();
         if (q) q.setContents([]); // 비우기
+        refreshSeo();
         hideEditorNotice();
         clearTrim();
         closeLinkCardBar();
@@ -2776,12 +3013,18 @@
         formTitleEl.textContent = (currentPost.status === 'draft') ? '임시저장 글 이어쓰기' : '글 수정';
         fTitle.value = currentPost.title || '';
         fCategory.value = currentPost.category || '';   // 기존 카테고리 선택 상태로 표시
+        // 저장된 검색 제목·설명이 있으면 그 값(직접 입력), 없으면 자동
+        seoManual.title = !!String(currentPost.seo_title || '').trim();
+        seoManual.desc = !!String(currentPost.seo_description || '').trim();
+        fSeoTitle.value = currentPost.seo_title || '';
+        fSeoDesc.value = currentPost.seo_description || '';
         const q = ensureQuill();
         if (q) {
           // 기존 HTML 을 에디터에 로드
           q.setContents([]);
           q.clipboard.dangerouslyPasteHTML(0, currentPost.content || '');
         }
+        refreshSeo();
         hideEditorNotice();
         clearTrim();
         closeLinkCardBar();
@@ -2801,7 +3044,7 @@
         const title = fTitle.value.trim();
         const category = fCategory.value || null;
         const q = ensureQuill();
-        const content = q ? q.root.innerHTML : '';
+        const content = q ? addImageAlts(q.root.innerHTML, title) : '';   // 사진마다 '제목 이미지 N' 설명(alt)
 
         if (!title) { alert('제목을 입력해 주세요.'); return; }
         // 붙여넣은 사진을 Cloudinary 로 옮기는 중이면 잠시 기다리게 (임시저장 포함)
@@ -2830,18 +3073,28 @@
         btnSave.disabled = true; btnDraft.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 저장 중...';
         try {
-          let error;
-          if (editingId) {
-            ({ error } = await sb.from('posts').update({ title, content, status, category }).eq('id', editingId));
-          } else {
-            ({ error } = await sb.from('posts').insert({ title, content, status, category }));
+          const seo = seoValues();
+          const write = (row) => (editingId
+            ? sb.from('posts').update(row).eq('id', editingId)
+            : sb.from('posts').insert(row));
+          let { error } = await write({ title, content, status, category, ...seo });
+          // Supabase 에 seo_title·seo_description 칸을 아직 안 만들었으면: 글은 저장하고 검색 제목·설명만 빼고 안내
+          let seoNotSaved = false;
+          if (error && /seo_(title|description)/.test(error.message || '')) {
+            console.warn('[게시판] seo_title·seo_description 칸이 없어 검색 제목·설명은 빼고 저장:', error.message);
+            ({ error } = await write({ title, content, status, category }));
+            seoNotSaved = !!(seo.seo_title || seo.seo_description);
           }
           if (error) throw error;
           btnSave.disabled = false; btnDraft.disabled = false;
           btnSave.innerHTML = originalSave; btnDraft.innerHTML = originalDraft;
           editingId = null;
+          if (seoNotSaved) {
+            alert('글은 저장했지만, 직접 고친 검색 제목·설명은 저장하지 못했습니다.\n' +
+              'Supabase posts 테이블에 seo_title, seo_description 칸을 먼저 추가해 주세요. (지금은 자동 규칙으로 보입니다)');
+          }
           if (status === 'draft') alert('임시저장되었습니다. (운영자만 볼 수 있으며 공개되지 않습니다)');
-          showList(); // 목록으로 복귀 (최신순이라 새 글이 위로)
+          goList(); // 목록으로 복귀 (최신순이라 새 글이 위로)
         } catch (err) {
           console.error('[게시판] 저장 실패:', err);
           alert('저장에 실패했습니다.\n운영자 권한 또는 네트워크 상태를 확인해 주세요.\n(status·category 컬럼이 posts 테이블에 있는지도 확인해 주세요)');
@@ -2863,7 +3116,7 @@
           const { error } = await sb.from('posts').delete().eq('id', currentPost.id);
           if (error) throw error;
           currentPost = null;
-          showList();
+          goList();
         } catch (err) {
           console.error('[게시판] 삭제 실패:', err);
           alert('삭제에 실패했습니다. 운영자 권한을 확인해 주세요.');
@@ -2875,7 +3128,9 @@
         try {
           // 해시(#board)는 Supabase 토큰 전용으로 비워두고, 돌아올 위치는 쿼리스트링(?view=board)으로 지정.
           // (해시에 #board를 넣으면 Supabase가 붙이는 #access_token 과 충돌해 세션을 못 읽음)
-          const redirectTo = window.location.origin + window.location.pathname + '?view=board';
+          // 돌아오는 주소는 Supabase 에 등록된 첫 화면(/)으로 두고, 보던 게시판 주소는 따로 기억했다가 복귀
+          try { sessionStorage.setItem('boardReturnPath', location.pathname.startsWith('/column') ? location.pathname : '/column'); } catch (e) {}
+          const redirectTo = window.location.origin + '/?view=board';
           const { error } = await sb.auth.signInWithOAuth({
             provider: 'google',
             options: { redirectTo }
@@ -2891,7 +3146,7 @@
         currentUser = null;
         renderAuthBar();
         // 작성/수정/상세에 있었다면 목록으로
-        showList();
+        goList();
       }
 
       // --- 카테고리 필터 버튼 · 글쓰기 드롭다운 채우기 ---
@@ -2900,9 +3155,9 @@
 
       // --- 이벤트 바인딩 ---
       btnGoogleLogin.addEventListener('click', doGoogleLogin);
-      document.getElementById('detailBack').addEventListener('click', () => { window.location.hash = '#board'; showList(); });
-      document.getElementById('formBack').addEventListener('click', () => showList());
-      document.getElementById('btnCancel').addEventListener('click', () => { editingId = null; showList(); });
+      document.getElementById('detailBack').addEventListener('click', () => goList());
+      document.getElementById('formBack').addEventListener('click', () => goList());
+      document.getElementById('btnCancel').addEventListener('click', () => { editingId = null; goList(); });
       document.getElementById('btnEdit').addEventListener('click', openEditForm);
       document.getElementById('btnDelete').addEventListener('click', doDelete);
 
@@ -3113,10 +3368,10 @@
         let clip = pendingClip;
         if (!clip) { try { clip = JSON.parse(sessionStorage.getItem(NAVER_CLIP_KEY) || 'null'); } catch (e) {} }
         if (!clip) return;
-        if (window.location.hash !== '#board') history.replaceState(null, '', window.location.pathname + '#board');
-        if (!document.body.classList.contains('board-mode')) {
-          enterBoard();
-          showList();
+        // 게시판(/column)으로: 버튼은 첫 화면(/#naver-clip)을 열어 보냄
+        if (!document.body.classList.contains('board-mode') || !location.pathname.startsWith('/column')) {
+          history.replaceState(null, '', '/column');
+          goList(false);
         }
         if (!isAdmin()) {
           if (!clipLoginAsked) {
@@ -3133,16 +3388,11 @@
         insertExternalHtml(clip.html, '', quill.getSelection());
       }
 
-      // --- 해시 라우팅 ---
-      function handleRoute() {
-        if (window.location.hash === '#board' || window.location.hash === '#naver-clip') {
-          enterBoard();
-          showList();
-        } else {
-          leaveBoard();
-        }
-      }
-      window.addEventListener('hashchange', handleRoute);
+      // --- 첫 화면의 메뉴 이동(#services 등)은 게시판 닫기, 예전 #board 주소는 /column 으로 ---
+      window.addEventListener('hashchange', () => {
+        if (location.hash === '#board') { history.replaceState(null, '', '/column'); goList(false); }
+        else if (!location.pathname.startsWith('/column')) leaveBoard();
+      });
 
       // --- 인증 상태 변화 구독 (로그인/로그아웃 시 새로고침 없이 즉시 반영) ---
       sb.auth.onAuthStateChange((_event, session) => {
@@ -3198,16 +3448,15 @@
         }
 
         if (cameFromLogin) {
-          // 토큰/쿼리가 붙은 지저분한 URL을 깔끔하게 정리하고 게시판으로 고정
-          history.replaceState(null, '', window.location.pathname + '#board');
-          enterBoard();
-          showList();
-        } else {
-          handleRoute();
+          // 토큰/쿼리가 붙은 지저분한 URL을 정리하고, 로그인 전에 보던 게시판 주소로 복귀
+          let back = '/column';
+          try { back = sessionStorage.getItem('boardReturnPath') || '/column'; sessionStorage.removeItem('boardReturnPath'); } catch (e) {}
+          history.replaceState(null, '', back.startsWith('/column') ? back : '/column');
         }
         renderAuthBar();
+        await routeFromLocation();
         authReady = true;
-        applyNaverClip();
+        applyNaverClip();   // '네이버 글 담기'로 받아 둔 글이 있으면 글쓰기에
       }
 
       initAuthAndRoute();

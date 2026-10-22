@@ -8,6 +8,8 @@ import { fetchLinkPreview } from './link-preview.js'
 import { cloudinaryConfig, uploadSignature, importImage } from './cloudinary.js'
 // @ts-ignore (일반 JS 모듈)
 import { fetchNaverArticle } from './naver-article.js'
+// @ts-ignore (일반 JS 모듈)
+import { getPost, listPosts, postPath, postIdFromSlug, renderPostPage, renderListPage, renderNotFound, renderSitemap, ROBOTS_TXT } from './column.js'
 
 // 게시판(Supabase) 정보: public/index.html 과 같은 값 (공개용 키)
 const SUPABASE_URL = 'https://kbkmlwtldpuwssooikcm.supabase.co'
@@ -53,11 +55,60 @@ const NO_CLOUDINARY_KEYS = 'Cloudinary 환경변수(CLOUDINARY_CLOUD_NAME·CLOUD
 
 // 루트는 인라인된 index.html 반환
 app.get('/', (c) => c.html(indexHtml))
+// 브라우저가 자동으로 찾는 /favicon.ico 는 아이콘 파일(/favicon.svg)로 (없으면 서버 오류가 남)
+app.get('/favicon.ico', (c) => c.redirect('/favicon.svg', 301))
 
 // Google Search Console 사이트 소유권 확인 파일 (정확한 경로에서 원문 그대로 반환)
 app.get('/googlef151711fc2c45d18.html', (c) =>
   c.text('google-site-verification: googlef151711fc2c45d18.html')
 )
+
+// --- 세무 정보 게시글 (검색엔진용: 서버에서 제목·설명·본문·SEO 태그를 넣은 HTML) ---
+const db = { url: SUPABASE_URL, key: SUPABASE_ANON_KEY }
+const safeDecode = (s: string) => { try { return decodeURIComponent(s) } catch (e) { return s } }
+// 게시판 DB 를 끝내 못 읽었을 때: 화면은 열리게(글은 화면이 다시 불러옴) 기본 페이지를 주되,
+// 검색엔진이 SEO 태그 없는 페이지를 담아 가지 않도록 '잠시 오류(503), 나중에 다시'로 알림
+const dbDownPage = (c: Context) => c.html(indexHtml, 503, { 'Retry-After': '120' })
+
+// 목록
+app.get('/column', async (c) => {
+  try {
+    return c.html(renderListPage(indexHtml, await listPosts(db)))
+  } catch (e) {
+    console.error('[column] 목록 실패', e)
+    return dbDownPage(c)
+  }
+})
+app.get('/column/', (c) => c.redirect('/column', 301))
+app.get('/column/:category', (c) => c.redirect('/column', 301))
+
+// 글 한 편: /column/{분류}/{번호}-{제목}
+app.get('/column/:category/:slug', async (c) => {
+  const id = postIdFromSlug(c.req.param('slug'))
+  let post = null
+  try {
+    post = id ? await getPost(db, id) : null
+  } catch (e) {
+    console.error('[column] 글 읽기 실패', e)
+    return dbDownPage(c)
+  }
+  if (!post) return c.html(renderNotFound(indexHtml), 404)
+  // 분류·제목이 바뀌었거나 주소가 다르면 정식 주소로 영구 이동 (옛 링크도 살아 있게)
+  const canonicalPath = postPath(post)
+  if (safeDecode(new URL(c.req.url).pathname) !== safeDecode(canonicalPath)) return c.redirect(canonicalPath, 301)
+  return c.html(renderPostPage(indexHtml, post))
+})
+
+// 사이트맵·robots.txt
+app.get('/sitemap.xml', async (c) => {
+  let posts = []
+  try { posts = await listPosts(db, false) } catch (e) { console.error('[column] 사이트맵 글 목록 실패', e) }
+  return c.body(renderSitemap(posts), 200, {
+    'Content-Type': 'application/xml; charset=utf-8',
+    'Cache-Control': 'public, max-age=600'
+  })
+})
+app.get('/robots.txt', (c) => c.text(ROBOTS_TXT))
 
 // 링크 카드: 주소의 제목·설명·대표 이미지 (운영자 로그인 토큰이 있어야 사용 가능)
 app.get('/api/link-preview', async (c) => {
