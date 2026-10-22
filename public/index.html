@@ -2061,8 +2061,11 @@
             lastBlock = block;
           }
           for (let i = 0; i < s.length; i++) {
-            if (/[​﻿]/.test(s[i])) continue;
-            acc += /[\s ]/.test(s[i]) ? ' ' : s[i];
+            if (/[​-‍⁠﻿]/.test(s[i])) continue;
+            // 네이버 글 코드의 들여쓰기 공백이 많아 연속 공백·맨 앞 공백은 한 칸으로 (안 그러면 인사말까지 못 감)
+            const space = /[\s ㅤᅟᅠ⠀]/.test(s[i]);
+            if (space && (!acc || acc.endsWith(' '))) continue;
+            acc += space ? ' ' : s[i];
             at.push([node, i + 1]);
           }
         }

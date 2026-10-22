@@ -72,17 +72,35 @@ export async function fetchImage(url) {
   }
 }
 
-// 외부 사진 → Cloudinary(myhoteltax). 1) 서버가 직접 받아서 올리기 2) 안 되면 Cloudinary 가 주소로 직접 가져오기
+// 네이버 사진은 화면용 작은 판(카페 type=w800, 블로그 w773·w80_blur 등)으로 오는 경우가 많음 → 더 큰 판 주소
+// (카페 w1600: 원본이 더 작으면 원본 크기, 블로그 w966 이 가장 큼). 해당 없으면 주소 그대로
+export function largerNaverImage(url) {
+  try {
+    const u = new URL(url)
+    const want = /^cafeptthumb-phinf\.pstatic\.net$/i.test(u.hostname) ? 1600
+      : /^(postfiles|mblogthumb-phinf)\.pstatic\.net$/i.test(u.hostname) ? 966 : 0
+    const m = (u.searchParams.get('type') || '').match(/^w(\d+)/)
+    if (!want || (m && Number(m[1]) >= want)) return url
+    u.searchParams.set('type', 'w' + want)
+    return u.toString()
+  } catch (e) {
+    return url
+  }
+}
+
+// 외부 사진 → Cloudinary(myhoteltax). 1) 서버가 직접 받아서 올리기(네이버 사진은 큰 판부터) 2) 안 되면 Cloudinary 가 주소로 직접 가져오기
 // 성공: { ok: true, url, via }  실패: { ok: false, error }
 export async function importImage(cfg, rawUrl) {
   const u = checkUrl(rawUrl)
   if (!u) return { ok: false, error: '가져올 수 없는 주소입니다' }
   const errors = []
-  try {
-    const blob = await fetchImage(u.toString())
-    return { ok: true, url: await uploadFromServer(cfg, blob), via: 'server' }
-  } catch (e) {
-    errors.push((e && e.message) || String(e))
+  for (const src of new Set([largerNaverImage(u.toString()), u.toString()])) {
+    try {
+      const blob = await fetchImage(src)
+      return { ok: true, url: await uploadFromServer(cfg, blob), via: 'server' }
+    } catch (e) {
+      errors.push((e && e.message) || String(e))
+    }
   }
   try {
     return { ok: true, url: await uploadFromServer(cfg, u.toString()), via: 'cloudinary' }
