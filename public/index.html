@@ -1944,17 +1944,14 @@
         return cloudinarySign;
       }
       async function uploadToCloudinary(source) {
-        const s = await getCloudinarySign();
+        const s = await getCloudinarySign();   // Cloud name·API Key 는 서버 환경변수에서 옴 (코드에 없음)
+        if (!s.signed || !s.cloudName) throw new Error('Cloudinary 서명을 받지 못했습니다.');
         const form = new FormData();
         form.append('file', source);
         form.append('folder', s.folder);
-        if (s.signed) {
-          form.append('api_key', s.apiKey);
-          form.append('timestamp', s.timestamp);
-          form.append('signature', s.signature);
-        } else {
-          form.append('upload_preset', s.uploadPreset);
-        }
+        form.append('api_key', s.apiKey);
+        form.append('timestamp', s.timestamp);
+        form.append('signature', s.signature);
         const res = await fetch(`https://api.cloudinary.com/v1_1/${s.cloudName}/image/upload`, { method: 'POST', body: form });
         const json = await res.json().catch(() => null);
         if (!res.ok || !json || !json.secure_url) {
@@ -1966,9 +1963,33 @@
       const isCloudinaryUrl = (u) => /^https:\/\/res\.cloudinary\.com\//i.test(String(u || ''));
       const isOwnStorageUrl = (u) => String(u || '').startsWith(SUPABASE_URL + '/storage/');
 
+      // --- 외부 사진 주소 → 서버가 직접 받아 Cloudinary(myhoteltax)에 올리고 새 주소 받기 (/api/cloudinary/import) ---
+      // 일시적인 오류는 한 번 더 시도. 키 미등록(503)·로그인 문제(401)는 다시 해도 같으므로 바로 실패
+      async function importViaServer(src) {
+        const { data } = await sb.auth.getSession();
+        const token = data && data.session ? data.session.access_token : '';
+        let lastError = '';
+        for (let attempt = 1; attempt <= 2; attempt++) {
+          try {
+            const res = await fetch('/api/cloudinary/import', {
+              method: 'POST',
+              headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ url: src })
+            });
+            const json = await res.json().catch(() => null);
+            if (res.ok && json && json.ok && json.url) return json.url;
+            lastError = (json && json.error) || `사진 가져오기 실패 (HTTP ${res.status})`;
+            if (res.status === 401 || res.status === 503 || res.status === 404) break;
+          } catch (err) {
+            lastError = (err && err.message) || String(err);
+          }
+        }
+        throw new Error(lastError);
+      }
+
       // --- 붙여넣은 외부 사진(네이버 등)을 Cloudinary 로 옮기고 글 속 주소를 교체 ---
-      // 옮기는 동안 사진에 data-import="uploading" 표시 → 저장은 잠시 막음. 실패하면 '사진 자리' 표시로 바꿔 직접 올리게.
-      const importStats = { done: 0, failed: 0 };
+      // 옮기는 동안 사진에 data-import="uploading" 표시 → 저장은 잠시 막음. 정말 못 가져온 사진만 '사진 자리' 표시로.
+      const importStats = { done: 0, failed: 0, lastError: '' };
       let importTimer = null;
       function scheduleImport() {
         clearTimeout(importTimer);
@@ -1982,7 +2003,7 @@
             !isCloudinaryUrl(src) && !isOwnStorageUrl(src) && !src.startsWith('blob:');
         });
         if (!targets.length) return;
-        if (!quill.root.querySelector('img[data-import]')) { importStats.done = 0; importStats.failed = 0; }
+        if (!quill.root.querySelector('img[data-import]')) { importStats.done = 0; importStats.failed = 0; importStats.lastError = ''; }
         targets.forEach(img => img.setAttribute('data-import', 'uploading'));
         updateImportNotice();
         const queue = targets.slice();
@@ -1991,7 +2012,8 @@
             const img = queue.shift();
             const src = unwrapProxyImage(img.getAttribute('src') || '');
             try {
-              const url = await uploadToCloudinary(src);
+              // 인터넷 주소 사진은 서버가 받아서 올리고, 붙여넣은 사진 파일(data:)은 화면에서 바로 올림
+              const url = /^https?:\/\//i.test(src) ? await importViaServer(src) : await uploadToCloudinary(src);
               if (quill.root.contains(img)) {
                 img.setAttribute('src', url);
                 img.removeAttribute('data-import');
@@ -2000,6 +2022,7 @@
             } catch (err) {
               console.warn('[게시판] 붙여넣은 사진 옮기기 실패:', src.slice(0, 120), err);
               importStats.failed++;
+              importStats.lastError = (err && err.message) || String(err);
               replaceWithPhotoSlot(img);
             }
             updateImportNotice();
@@ -2023,7 +2046,8 @@
             (failed ? ` · 실패 ${failed}장` : '') + '. 끝날 때까지 저장을 기다려 주세요.', 'busy');
         } else if (failed) {
           showEditorNotice((done ? `붙여넣은 사진 ${done}장은 Cloudinary 로 옮겼고, ${failed}장은` : `붙여넣은 사진 ${failed}장을`) +
-            ' 가져오지 못해 ‘사진 자리’ 표시로 바꿨습니다. 이미지를 다시 업로드하세요 — 표시를 누르면 바로 그 자리에 올라갑니다.');
+            ' 가져오지 못해 ‘사진 자리’ 표시로 바꿨습니다. 이미지를 다시 업로드하세요 — 표시를 누르면 바로 그 자리에 올라갑니다.' +
+            (importStats.lastError ? ` (원인: ${importStats.lastError})` : ''));
         } else if (done) {
           showEditorNotice(`붙여넣은 사진 ${done}장을 Cloudinary(myhoteltax 폴더)로 옮기고 글 속 주소를 바꿨습니다.`, 'done');
         }

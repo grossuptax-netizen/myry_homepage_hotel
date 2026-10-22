@@ -4,22 +4,21 @@ import type { Context } from 'hono'
 import indexHtml from '../public/index.html?raw'
 // @ts-ignore (일반 JS 모듈)
 import { fetchLinkPreview } from './link-preview.js'
+// @ts-ignore (일반 JS 모듈)
+import { cloudinaryConfig, uploadSignature, importImage } from './cloudinary.js'
 
 // 게시판(Supabase) 정보: public/index.html 과 같은 값 (공개용 키)
 const SUPABASE_URL = 'https://kbkmlwtldpuwssooikcm.supabase.co'
 const SUPABASE_ANON_KEY = 'sb_publishable_70Bak9NaZKYyi9BJPMXXPA_4C4T3toV'
 const ADMIN_EMAIL = 'grossuptax@gmail.com'
 
-// Cloudinary: 정육점 사이트(jung6tax.com)와 같은 계정, 이 사이트 사진은 'myhoteltax' 폴더로 구분
-const CLOUDINARY_CLOUD_NAME = 'vxqu6qlr'
-const CLOUDINARY_FOLDER = 'myhoteltax'
-const CLOUDINARY_DEFAULT_PRESET = 'jung6tax_upload'   // 서명 키가 없을 때만 쓰는 공개(unsigned) preset
-
-// Cloudflare 환경변수(비밀값): 젠스파크/Cloudflare 에서 등록
+// 키는 코드에 쓰지 않고 .env 파일(GitHub 제외, 견본 .env.example)에 둠.
+// Cloudflare 서버는 .env 를 직접 읽지 못하므로: 실제 사이트는 `npm run secrets:push` 로 .env 값을 비밀값(secret)으로 등록,
+// 로컬은 `npm run preview` 가 .env 를 .dev.vars 로 복사해 씀 (scripts/env-sync.mjs)
 type Bindings = {
+  CLOUDINARY_CLOUD_NAME?: string
   CLOUDINARY_API_KEY?: string
   CLOUDINARY_API_SECRET?: string
-  CLOUDINARY_UPLOAD_PRESET?: string
 }
 
 const app = new Hono<{ Bindings: Bindings }>()
@@ -35,12 +34,7 @@ async function isAdminRequest(c: Context): Promise<boolean> {
   return !!user && String(user.email || '').toLowerCase() === ADMIN_EMAIL
 }
 
-// Cloudinary 서명: 파라미터를 이름순으로 'a=1&b=2' 로 이어 붙이고 API Secret 을 덧붙인 SHA-1
-async function signCloudinary(params: Record<string, string>, secret: string): Promise<string> {
-  const toSign = Object.keys(params).sort().map((k) => `${k}=${params[k]}`).join('&') + secret
-  const hash = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(toSign))
-  return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, '0')).join('')
-}
+const NO_CLOUDINARY_KEYS = 'Cloudinary 환경변수(CLOUDINARY_CLOUD_NAME·CLOUDINARY_API_KEY·CLOUDINARY_API_SECRET)가 서버에 등록되지 않았습니다.'
 
 // 루트는 인라인된 index.html 반환
 app.get('/', (c) => c.html(indexHtml))
@@ -59,19 +53,23 @@ app.get('/api/link-preview', async (c) => {
   return c.json(info, info.error ? 400 : 200)
 })
 
-// Cloudinary 업로드 서명 (운영자만). 화면은 이 값으로 Cloudinary 에 직접 올림
-// - API Key/Secret 이 등록돼 있으면: 서명 업로드 (운영자 외에는 올릴 수 없음), 폴더 myhoteltax
-// - 등록돼 있지 않으면: 정육점 사이트처럼 공개 preset 업로드 (폴더 myhoteltax 지정)
+// Cloudinary 업로드 서명 (운영자만): 카메라 버튼 등 파일을 화면에서 직접 올릴 때. 폴더 myhoteltax
 app.post('/api/cloudinary/sign', async (c) => {
   if (!(await isAdminRequest(c))) return c.json({ ok: false, error: '운영자 로그인이 필요합니다.' }, 401)
-  const env = c.env || {}
-  const base = { ok: true, cloudName: CLOUDINARY_CLOUD_NAME, folder: CLOUDINARY_FOLDER }
-  if (!env.CLOUDINARY_API_KEY || !env.CLOUDINARY_API_SECRET) {
-    return c.json({ ...base, signed: false, uploadPreset: env.CLOUDINARY_UPLOAD_PRESET || CLOUDINARY_DEFAULT_PRESET })
-  }
-  const params = { folder: CLOUDINARY_FOLDER, timestamp: String(Math.floor(Date.now() / 1000)) }
-  const signature = await signCloudinary(params, env.CLOUDINARY_API_SECRET)
-  return c.json({ ...base, signed: true, apiKey: env.CLOUDINARY_API_KEY, timestamp: params.timestamp, signature })
+  const cfg = cloudinaryConfig(c.env)
+  if (!cfg) return c.json({ ok: false, error: NO_CLOUDINARY_KEYS }, 503)
+  return c.json({ ok: true, signed: true, ...(await uploadSignature(cfg)) })
+})
+
+// 외부 사진 가져오기 (운영자만): 붙여넣은 네이버 등 사진을 서버가 직접 받아 Cloudinary(myhoteltax)에 올리고 새 주소를 돌려줌
+// 서버가 못 받으면 Cloudinary 가 주소에서 직접 가져오게 한 번 더 시도
+app.post('/api/cloudinary/import', async (c) => {
+  if (!(await isAdminRequest(c))) return c.json({ ok: false, error: '운영자 로그인이 필요합니다.' }, 401)
+  const cfg = cloudinaryConfig(c.env)
+  if (!cfg) return c.json({ ok: false, error: NO_CLOUDINARY_KEYS }, 503)
+  const body: any = await c.req.json().catch(() => ({}))
+  const result = await importImage(cfg, body && body.url)
+  return c.json(result, result.ok ? 200 : 502)
 })
 
 export default app

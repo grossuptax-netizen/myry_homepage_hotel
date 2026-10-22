@@ -5,3 +5,8 @@ node_modules/
 dist/
 .wrangler/
 .dev.vars
+
+# 비밀값(Cloudinary 키 등) — 절대 GitHub 에 올리지 않음. 견본(.env.example)만 올림
+.env
+.env.*
+!.env.example
