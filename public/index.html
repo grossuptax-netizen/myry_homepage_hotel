@@ -703,7 +703,33 @@
     .post-form input[type="text"]:focus, .post-form textarea:focus, .post-form select:focus { outline: none; border-color: var(--gold); background: #fff; }
     .post-form select { cursor: pointer; }
     .post-form textarea { resize: vertical; min-height: 280px; line-height: 1.8; }
-    .post-form-actions { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+    /* 등록·임시저장·취소 바: 글쓰기 카드 맨 위. 스크롤하면 사이트 메뉴(--header-h) 바로 아래에 붙어 있음.
+       글 흐름 안에 자리를 차지하므로 처음에는 제목 칸을 가리지 않고, 내려가는 내용만 바 뒤로 지나감 */
+    .form-bar {
+      position: sticky; top: var(--header-h, 78px); z-index: 900;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      margin: -40px -40px 28px; padding: 16px 40px;
+      background: #fff; border-bottom: 1px solid var(--lavender);
+      border-radius: 16px 16px 0 0; transition: box-shadow 0.2s ease, border-radius 0.2s ease;
+    }
+    .form-bar.is-stuck { border-radius: 0; box-shadow: 0 8px 20px rgba(61,43,86,0.12); }
+    .form-bar-title { margin: 0; font-size: 1.3rem; font-weight: 900; color: var(--plum); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .form-bar-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .form-bar .btn-board-gold { padding: 11px 26px; box-shadow: 0 4px 12px rgba(176,142,69,0.3); }
+    /* 보조(임시저장): 흰 바탕 + 플럼 테두리 / 가장 약하게(취소): 글자만 */
+    .btn-board-sub { background: #fff; color: var(--plum); border: 1.5px solid var(--plum-light); }
+    .btn-board-sub:hover { background: var(--plum); color: #fff; border-color: var(--plum); }
+    .btn-board-text { background: none; color: #8f84a3; padding-left: 14px; padding-right: 14px; }
+    .btn-board-text:hover { color: var(--plum); background: #f3eff7; }
+    .btn-board:disabled { opacity: 0.6; cursor: default; transform: none; box-shadow: none; }
+    /* 휴대폰: 바에는 버튼만, 화면 폭을 나눠 크게 (취소는 좁게) */
+    @media (max-width: 560px) {
+      .form-bar-title { display: none; }
+      .form-bar-actions { flex: 1; }
+      .form-bar-actions .btn-board { flex: 1 1 0; justify-content: center; }
+      .form-bar-actions .btn-board-gold { flex-grow: 1.3; }   /* 등록을 가장 넓게 */
+      .form-bar-actions .btn-board-text { flex: 0 0 auto; }
+    }
 
     /* Quill 리치 텍스트 에디터 (딥 플럼·골드 톤) */
     #quillEditor { min-height: 320px; font-family: 'Noto Sans KR', sans-serif; font-size: 1rem; line-height: 1.8; }
@@ -889,7 +915,11 @@
       .board-hero { padding: 100px 0 26px; margin-bottom: 24px; }
       .board-sub { font-size: 0.93rem; }
       .post-detail, .post-form { padding: 26px 20px; }
-      .post-detail-actions .btn-board, .post-form-actions .btn-board { flex: 1; justify-content: center; }
+      .post-detail-actions .btn-board { flex: 1; justify-content: center; }
+      .form-bar { margin: -26px -20px 22px; padding: 10px 14px; gap: 10px; }
+      .form-bar-title { font-size: 1.05rem; }
+      .form-bar .btn-board { min-height: 44px; padding: 10px 14px; }   /* 손가락으로 누르기 편한 높이 */
+      .form-bar .btn-board-gold { padding: 10px 18px; }
       /* 필터 버튼: 한 줄로 두고 옆으로 밀어서 보기 (화면 끝까지 붙여 넘김이 보이게) */
       .cat-filter {
         flex-wrap: nowrap; overflow-x: auto; gap: 8px; margin: 24px -24px 0; padding: 2px 24px 6px;
@@ -1258,7 +1288,15 @@
       <div id="boardForm" style="display:none">
         <span class="back-link" id="formBack"><i class="fas fa-arrow-left"></i> 목록으로</span>
         <form class="post-form" id="postForm">
-          <h2 style="font-size:1.4rem;font-weight:900;color:var(--plum);margin-bottom:24px;" id="formTitle">새 글 작성</h2>
+          <!-- 등록·임시저장·취소: 글 위쪽에 두고, 아래로 스크롤해도 사이트 메뉴 바로 아래에 붙어 늘 보이게 -->
+          <div class="form-bar" id="formBar">
+            <h2 class="form-bar-title" id="formTitle">새 글 작성</h2>
+            <div class="form-bar-actions">
+              <button type="button" class="btn-board btn-board-text" id="btnCancel">취소</button>
+              <button type="button" class="btn-board btn-board-sub" id="btnDraft"><i class="fas fa-box-archive"></i> 임시저장</button>
+              <button type="submit" class="btn-board btn-board-gold" id="btnSave"><i class="fas fa-check"></i> 등록</button>
+            </div>
+          </div>
           <div class="field">
             <label for="fTitle">제목</label>
             <input type="text" id="fTitle" name="title" maxlength="200" placeholder="제목을 입력하세요" required />
@@ -1322,11 +1360,6 @@
               </div>
             </div>
           </details>
-          <div class="post-form-actions">
-            <button type="submit" class="btn-board btn-board-gold" id="btnSave"><i class="fas fa-check"></i> 등록</button>
-            <button type="button" class="btn-board btn-board-plum" id="btnDraft"><i class="fas fa-box-archive"></i> 임시저장</button>
-            <button type="button" class="btn-board btn-board-outline" id="btnCancel">취소</button>
-          </div>
         </form>
       </div>
 
@@ -2667,6 +2700,7 @@
       function leaveBoard() {
         document.body.classList.remove('board-mode');
         setPageMeta({ title: HOME_TITLE, desc: HOME_DESC, url: SITE_URL + '/', type: 'website' });
+        updateFormBar();   // 첫 화면에서는 글쓰기용 스크롤 여백을 없앰
       }
 
       // --- 주소 라우팅: /column = 목록, /column/{분류}/{번호}-{제목} = 글 (서버가 같은 주소로 검색엔진용 HTML 을 줌) ---
@@ -2729,6 +2763,7 @@
         boardFormEl.style.display = 'none';
         catFilterEl.style.display = '';
         window.scrollTo(0, 0);
+        updateFormBar();
         loadPosts();
       }
       function showDetail() {
@@ -2737,6 +2772,7 @@
         boardFormEl.style.display = 'none';
         catFilterEl.style.display = 'none';   // 필터는 목록에서만
         window.scrollTo(0, 0);
+        updateFormBar();
       }
       function showForm() {
         boardListEl.style.display = 'none';
@@ -2744,7 +2780,26 @@
         boardFormEl.style.display = 'block';
         catFilterEl.style.display = 'none';
         window.scrollTo(0, 0);
+        updateFormBar();
       }
+
+      // --- 글쓰기 위쪽 고정 바(등록·임시저장·취소) ---
+      // 바가 붙을 높이 = 사이트 메뉴 높이(--header-h). 글쓰기 중에는 화면이 커서·사진 위치로 스크롤될 때
+      // 메뉴+바 아래로 오도록 scroll-padding 을 줌 (편집기도 이 값을 따름). 바가 위에 붙으면 그림자.
+      const siteHeaderEl = document.getElementById('header');
+      const formBarEl = document.getElementById('formBar');
+      function updateFormBar() {
+        const headerH = siteHeaderEl ? siteHeaderEl.offsetHeight : 0;
+        document.documentElement.style.setProperty('--header-h', headerH + 'px');
+        const writing = document.body.classList.contains('board-mode') && boardFormEl.style.display === 'block';
+        const pad = writing ? `${headerH + formBarEl.offsetHeight + 12}px` : '';
+        document.documentElement.style.scrollPaddingTop = pad;
+        document.body.style.scrollPaddingTop = pad;
+        formBarEl.classList.toggle('is-stuck', writing && window.scrollY > 0 &&
+          formBarEl.getBoundingClientRect().top <= headerH + 1);
+      }
+      window.addEventListener('scroll', updateFormBar, { passive: true });
+      window.addEventListener('resize', updateFormBar);
 
       // --- 인증 UI 갱신 ---
       // 로그인: 보라색 영역 오른쪽 위에 운영자 표시·글쓰기·로그아웃 / 로그아웃: 맨 아래 '관리자 로그인' 링크만
