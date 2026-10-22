@@ -766,6 +766,15 @@
     }
     .draft-del:hover { background: #fdf1ef; color: #c0392b; }
     .drafts-empty { padding: 56px 20px; text-align: center; color: #9a8fb0; font-size: 0.95rem; }
+    /* 저장 안 하고 나가기 확인창 */
+    .leave-dialog { max-width: 420px; }
+    .leave-body { padding: 26px 24px 8px; }
+    .leave-body h3 { margin: 0 0 10px; font-size: 1.08rem; font-weight: 900; color: var(--plum); line-height: 1.45; }
+    .leave-body h3 i { margin-right: 6px; color: var(--gold-dark); }
+    .leave-body p { margin: 0; font-size: 0.93rem; color: #5e5372; line-height: 1.6; }
+    .leave-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 18px 24px 22px; }
+    .leave-actions .btn-board { min-height: 44px; padding: 10px 20px; }
+    @media (max-width: 560px) { .leave-actions .btn-board { flex: 1; justify-content: center; } }
     .form-bar-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
     .form-bar .btn-board-gold { padding: 11px 26px; box-shadow: 0 4px 12px rgba(176,142,69,0.3); }
     /* 보조(임시저장): 흰 바탕 + 플럼 테두리 / 가장 약하게(취소): 글자만 */
@@ -1441,6 +1450,20 @@
         </div>
       </div>
 
+      <!-- 저장하지 않고 글쓰기 화면을 나가려 할 때 확인창 -->
+      <div class="drafts-modal" id="leaveModal" hidden>
+        <div class="drafts-dialog leave-dialog" role="alertdialog" aria-modal="true" aria-labelledby="leaveTitle" aria-describedby="leaveDesc">
+          <div class="leave-body">
+            <h3 id="leaveTitle"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i> 작성 중인 내용이 저장되지 않았습니다.</h3>
+            <p id="leaveDesc">정말 나가시겠습니까? 저장하지 않은 내용은 사라집니다.</p>
+          </div>
+          <div class="leave-actions">
+            <button type="button" class="btn-board btn-board-danger" id="leaveGo">나가기</button>
+            <button type="button" class="btn-board btn-board-gold" id="leaveStay">계속 작성</button>
+          </div>
+        </div>
+      </div>
+
       <!-- 로그아웃 상태에서만 표시: 운영자용 작은 로그인 링크 -->
       <div class="board-login-foot" id="boardLoginFoot">
         <button type="button" class="admin-login-link" id="btnGoogleLogin"><i class="fas fa-lock" aria-hidden="true"></i> 관리자 로그인</button>
@@ -1695,6 +1718,7 @@
 
       let currentUser = null;      // 로그인 사용자
       let editingId   = null;      // 수정 중인 글 id (null이면 새 글)
+      let editingPublished = false;   // 수정 중인 글이 공개(등록)된 글인지 → 임시저장하면 비공개로 바뀌므로 확인
       let currentPost = null;      // 상세 화면에 표시 중인 글
       let quill       = null;      // Quill 에디터 인스턴스
       let allPosts    = [];        // 불러온 전체 글 (필터는 이 목록에서 거름)
@@ -2825,13 +2849,25 @@
         if (location.hash === '#board') { history.replaceState(null, '', '/column'); goList(false); return; }   // 예전 주소
         leaveBoard();
       }
-      window.addEventListener('popstate', routeFromLocation);
-      // 메뉴의 '세무 정보'(/column) 는 새로고침 없이 게시판으로
-      document.addEventListener('click', (e) => {
+      window.addEventListener('popstate', async () => {
+        // 저장 안 된 글쓰기 중 뒤로가기: 일단 글쓰기 주소로 되돌려 두고 물어본 뒤, '나가기'면 다시 뒤로
+        if (!leavingForm && hasUnsavedChanges()) {
+          history.pushState(null, '', formUrl);
+          if (await askLeave()) {
+            leavingForm = true;
+            history.back();
+          }
+          return;
+        }
+        leavingForm = false;
+        routeFromLocation();
+      });
+      // 메뉴의 '세무 정보'(/column) 는 새로고침 없이 게시판으로 (글쓰기 중 저장 안 했으면 먼저 확인)
+      document.addEventListener('click', async (e) => {
         const a = e.target.closest('a[href="/column"]');
         if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         e.preventDefault();
-        goList(true);
+        if (await confirmLeaveForm()) goList(true);
       });
 
       // --- 내부 뷰 전환 (목록/상세/작성) ---
@@ -2859,7 +2895,60 @@
         catFilterEl.style.display = 'none';
         window.scrollTo(0, 0);
         updateFormBar();
+        formUrl = location.href;   // 뒤로가기를 되돌릴 때 쓸 글쓰기 화면 주소
       }
+
+      // --- 저장하지 않고 나가기 경고 ---
+      // 글쓰기·수정 화면의 내용(제목·카테고리·본문·직접 고친 검색 칸)을 열 때·저장할 때 기억해 두고, 달라졌으면 '저장 안 된 변경'.
+      // 취소·목록으로·메뉴·글쓰기·로그아웃·뒤로가기는 확인창(나가기 / 계속 작성), 새로고침·탭 닫기·주소 이동은 브라우저 기본 경고.
+      let savedSnapshot = '';
+      let formUrl = '';
+      let leavingForm = false;   // '나가기'를 고른 뒤 이어지는 뒤로가기는 다시 묻지 않음
+      const isFormOpen = () => document.body.classList.contains('board-mode') && boardFormEl.style.display === 'block';
+      function formSnapshot() {
+        // 본문은 편집기 내용(Delta)으로 비교: 링크 카드 썸네일이 안 열려 아이콘으로 바뀌는 것 같은 화면 변화는 변경으로 치지 않음
+        return JSON.stringify([fTitle.value.trim(), fCategory.value,
+          seoManual.title ? fSeoTitle.value.trim() : '', seoManual.desc ? fSeoDesc.value.trim() : '',
+          quill ? quill.getContents().ops : []]);
+      }
+      function markFormClean() { savedSnapshot = formSnapshot(); }
+      function hasUnsavedChanges() {
+        if (!isFormOpen()) return false;
+        if (!editingId && !fTitle.value.trim() && editorIsEmpty()) return false;   // 아무것도 안 쓴 새 글
+        return formSnapshot() !== savedSnapshot;
+      }
+      // 확인창: true = 나가기, false = 계속 작성 (바깥 클릭·Esc 도 계속 작성)
+      const leaveModal = document.getElementById('leaveModal');
+      let leaveAnswer = null;
+      function askLeave() {
+        return new Promise((resolve) => {
+          leaveAnswer = resolve;
+          leaveModal.hidden = false;
+          document.getElementById('leaveStay').focus();
+        });
+      }
+      function answerLeave(go) {
+        if (leaveModal.hidden) return;
+        leaveModal.hidden = true;
+        const resolve = leaveAnswer;
+        leaveAnswer = null;
+        if (resolve) resolve(go);
+      }
+      document.getElementById('leaveGo').addEventListener('click', () => answerLeave(true));
+      document.getElementById('leaveStay').addEventListener('click', () => answerLeave(false));
+      leaveModal.addEventListener('click', (e) => { if (e.target === leaveModal) answerLeave(false); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') answerLeave(false); });
+      // 글쓰기 화면을 벗어나도 되는지: 저장 안 된 변경이 없거나 '나가기'를 고르면 true
+      async function confirmLeaveForm() {
+        return !hasUnsavedChanges() || askLeave();
+      }
+      const guarded = (fn) => async (...args) => { if (await confirmLeaveForm()) fn(...args); };
+      // 새로고침·탭/창 닫기·다른 주소로 이동: 브라우저 기본 경고
+      window.addEventListener('beforeunload', (e) => {
+        if (!hasUnsavedChanges()) return;
+        e.preventDefault();
+        e.returnValue = '';
+      });
 
       // --- 글쓰기 위쪽 고정 바(등록·임시저장·취소) ---
       // 바가 붙을 높이 = 사이트 메뉴 높이(--header-h). 글쓰기 중에는 화면이 커서·사진 위치로 스크롤될 때
@@ -2892,7 +2981,7 @@
           adminBar.innerHTML = html;
           adminBar.style.display = 'flex';
           loginFoot.style.display = 'none';
-          if (admin) document.getElementById('btnNew').addEventListener('click', openNewForm);
+          if (admin) document.getElementById('btnNew').addEventListener('click', guarded(openNewForm));   // 쓰던 글이 있으면 먼저 확인
           document.getElementById('btnLogout').addEventListener('click', doLogout);
         } else {
           adminBar.innerHTML = '';
@@ -3127,6 +3216,7 @@
       function openNewForm() {
         if (!isAdmin()) return;
         editingId = null;
+        editingPublished = false;
         formTitleEl.textContent = '새 글 작성';
         fTitle.value = '';
         fCategory.value = '';
@@ -3139,11 +3229,13 @@
         closeLinkCardBar();
         showForm();
         refreshDraftCount();
+        markFormClean();   // 지금 상태를 '저장된 상태'로 (여기서 달라지면 나가기 경고)
       }
       // --- 수정 폼 (임시저장 글 이어쓰기 포함) ---
       function openEditForm() {
         if (!isAdmin() || !currentPost) return;
         editingId = currentPost.id;
+        editingPublished = currentPost.status === 'published';
         formTitleEl.textContent = (currentPost.status === 'draft') ? '임시저장 글 이어쓰기' : '글 수정';
         fTitle.value = currentPost.title || '';
         fCategory.value = currentPost.category || '';   // 기존 카테고리 선택 상태로 표시
@@ -3164,6 +3256,7 @@
         closeLinkCardBar();
         showForm();
         refreshDraftCount();
+        markFormClean();   // 불러온 그대로를 '저장된 상태'로
       }
 
       // --- 에디터 내용이 비었는지 판별 ---
@@ -3249,8 +3342,7 @@
       }
       // 고른 임시저장 글을 이어쓰기로 불러오기 (쓰던 내용이 있으면 먼저 확인)
       function loadDraft(p) {
-        const writing = fTitle.value.trim() || !editorIsEmpty();
-        if (writing && editingId !== p.id &&
+        if (editingId !== p.id && hasUnsavedChanges() &&
             !confirm('지금 글쓰기 화면에 있는 내용은 저장되지 않고 사라집니다.\n이 임시저장 글을 불러올까요?')) return;
         closeDrafts();
         currentPost = p;
@@ -3259,18 +3351,14 @@
       async function deleteDraft(p) {
         if (!confirm('정말 삭제하시겠습니까?')) return;
         try {
-          const { error } = await sb.from('posts').delete().eq('id', p.id);
-          if (error) throw error;
+          await deletePostRow(p.id);   // 정말 지워졌는지까지 확인
           draftsCache = draftsCache.filter(d => d.id !== p.id);
-          // 지금 이어쓰던 글을 지웠으면, 화면의 내용은 남기고 저장할 때 새 글로
-          if (editingId === p.id) {
-            editingId = null;
-            formTitleEl.textContent = '새 글 작성';
-          }
+          // 지금 글쓰기 칸에 불러와 이어쓰던 글을 지웠으면 칸도 비우고 새 글 쓰기로 (다른 글을 지웠으면 그대로)
+          if (editingId === p.id) openNewForm();
           renderDrafts();
         } catch (err) {
           console.error('[게시판] 임시저장 글 삭제 실패:', err);
-          alert('삭제에 실패했습니다. 운영자 권한을 확인해 주세요.');
+          alert('삭제에 실패했습니다.\n\n(원인: ' + ((err && err.message) || err) + ')');
         }
       }
       btnDrafts.addEventListener('click', openDrafts);
@@ -3308,6 +3396,13 @@
           return;
         }
 
+        // 공개된 글을 고치다 '임시저장'을 누르면 게시판에서 내려가므로 한 번 더 확인 (새 글·임시저장 글은 그대로)
+        if (status === 'draft' && editingId && editingPublished &&
+            !confirm('이 글은 지금 게시판에 공개되어 있습니다.\n' +
+              '임시저장하면 게시판에서 내려가고, 운영자만 보는 임시저장 글(비공개)로 바뀝니다.\n' +
+              '공개 상태를 유지하며 고치려면 ‘취소’를 누른 뒤 ‘등록’을 눌러 주세요.\n\n' +
+              '[확인] 비공개로 임시저장    [취소] 그대로 두기')) return;
+
         const btn = (status === 'draft') ? btnDraft : btnSave;
         const originalSave = btnSave.innerHTML, originalDraft = btnDraft.innerHTML;
         btnSave.disabled = true; btnDraft.disabled = true;
@@ -3340,6 +3435,7 @@
             ({ error } = await write(row));
           }
           if (error) throw error;
+          markFormClean();   // 저장했으므로 나가기 경고 없음
           btnSave.disabled = false; btnDraft.disabled = false;
           btnSave.innerHTML = originalSave; btnDraft.innerHTML = originalDraft;
           editingId = null;
@@ -3372,13 +3468,21 @@
         if (!isAdmin() || !currentPost) return;
         if (!confirm('정말 삭제하시겠습니까?')) return;
         try {
-          const { error } = await sb.from('posts').delete().eq('id', currentPost.id);
-          if (error) throw error;
+          await deletePostRow(currentPost.id);
           currentPost = null;
           goList();
         } catch (err) {
           console.error('[게시판] 삭제 실패:', err);
-          alert('삭제에 실패했습니다. 운영자 권한을 확인해 주세요.');
+          alert('삭제에 실패했습니다.\n\n(원인: ' + ((err && err.message) || err) + ')');
+        }
+      }
+      // 글 한 편 삭제. 게시판 DB 는 삭제 권한이 없으면 오류 없이 '0개 지움'으로 끝나므로,
+      // 지운 글을 돌려받아 정말 지워졌는지 확인하고 아니면 오류로 알림
+      async function deletePostRow(id) {
+        const { data, error } = await sb.from('posts').delete().eq('id', id).select('id');
+        if (error) throw error;
+        if (!data || !data.length) {
+          throw new Error('게시판 DB 에서 지워지지 않았습니다 (지운 글 0개). Supabase posts 표의 삭제 권한(정책)을 확인해 주세요.');
         }
       }
 
@@ -3401,6 +3505,7 @@
         }
       }
       async function doLogout() {
+        if (!(await confirmLeaveForm())) return;   // 글쓰기 중 저장 안 했으면 먼저 확인
         try { await sb.auth.signOut(); } catch (e) { console.error(e); }
         currentUser = null;
         renderAuthBar();
@@ -3415,8 +3520,9 @@
       // --- 이벤트 바인딩 ---
       btnGoogleLogin.addEventListener('click', doGoogleLogin);
       document.getElementById('detailBack').addEventListener('click', () => goList());
-      document.getElementById('formBack').addEventListener('click', () => goList());
-      document.getElementById('btnCancel').addEventListener('click', () => { editingId = null; goList(); });
+      // 글쓰기 화면 나가기(목록으로·취소): 저장 안 된 변경이 있으면 '나가기 / 계속 작성' 확인
+      document.getElementById('formBack').addEventListener('click', guarded(() => goList()));
+      document.getElementById('btnCancel').addEventListener('click', guarded(() => { editingId = null; goList(); }));
       document.getElementById('btnEdit').addEventListener('click', openEditForm);
       document.getElementById('btnDelete').addEventListener('click', doDelete);
 
