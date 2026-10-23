@@ -614,6 +614,12 @@
     .post-card .post-excerpt { color: #666; font-size: 0.92rem; line-height: 1.6; word-break: keep-all;
       display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
     .post-card .post-meta { font-size: 0.82rem; color: #9a8fb0; display: flex; align-items: center; gap: 6px; }
+    /* 운영자만: 카드 날짜 줄 오른쪽 SEO 형식 정리 여부 (완료 초록 / 미완료 회색) */
+    .card-seo {
+      margin-left: auto; display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 999px;
+      font-size: 0.72rem; font-weight: 700; line-height: 18px; white-space: nowrap; background: #f0edf3; color: #8f84a3;
+    }
+    .card-seo.is-done { background: #eaf6e4; color: #2f6b22; }
 
     .board-empty, .board-loading {
       text-align: center; padding: 70px 20px; color: #9a8fb0; font-size: 1rem;
@@ -761,6 +767,11 @@
     .draft-title { display: block; font-size: 0.97rem; font-weight: 700; color: #2c2c2c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .draft-title.is-empty { color: #9a8fb0; font-weight: 500; }
     .draft-date { display: block; margin-top: 3px; font-size: 0.8rem; color: #9a8fb0; }
+    .draft-seo {
+      display: inline-block; margin-left: 8px; padding: 0 7px; border-radius: 999px; line-height: 18px; vertical-align: 1px;
+      font-size: 0.72rem; font-weight: 700; background: #f0edf3; color: #8f84a3;
+    }
+    .draft-seo.is-done { background: #eaf6e4; color: #2f6b22; }
     .draft-del {
       flex-shrink: 0; width: 44px; height: 44px; margin-right: 10px; border: none; border-radius: 10px;
       background: none; color: #b3a9c4; font-size: 1rem; cursor: pointer;
@@ -878,7 +889,19 @@
     /* SEO 형식 정리 버튼·결과 */
     .seo-tidy { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; margin-bottom: 14px; }
     .seo-tidy .btn-board { min-height: 42px; }
-    .seo-tidy span { flex: 1; min-width: 200px; font-size: 0.8rem; color: #9a8fb0; line-height: 1.5; }
+    .seo-tidy-desc { flex: 1; min-width: 200px; font-size: 0.8rem; color: #9a8fb0; line-height: 1.5; }
+    /* SEO 형식 정리 완료 여부 배지 (운영자 글쓰기·수정 화면): 완료 초록 / 안 됨 주황 */
+    .seo-done-badge {
+      display: inline-flex; align-items: center; gap: 5px; flex: none; padding: 3px 10px; border-radius: 999px;
+      border: 1px solid #f0c79c; background: #fff4e8; color: #a8560f;
+      font-family: inherit; font-size: 0.78rem; font-weight: 700; line-height: 1.5; white-space: nowrap;
+    }
+    .seo-done-badge.is-done { border-color: #b9d6ae; background: #eaf6e4; color: #2f6b22; }
+    button.seo-done-badge { cursor: pointer; }
+    button.seo-done-badge:hover { filter: brightness(0.97); }
+    .seo-box summary .seo-done-badge { margin-left: 8px; vertical-align: 1px; }
+    .seo-box summary .seo-done-badge i { margin-right: 0; color: inherit; }
+    @media (max-width: 760px) { .form-bar .seo-done-badge { display: none; } }
     .seo-result {
       margin-bottom: 16px; padding: 12px 14px; border-radius: 10px; border: 1px solid #cfe3c8; background: #f3faf0;
       color: #2f5a24; font-size: 0.86rem; line-height: 1.6;
@@ -1422,6 +1445,8 @@
               <button type="button" class="drafts-btn" id="btnDrafts" title="임시저장한 글 목록 열기">
                 <i class="far fa-folder-open" aria-hidden="true"></i><span class="drafts-label">임시저장 글</span><b class="drafts-count" id="draftCount">0</b>
               </button>
+              <!-- SEO 형식 정리 완료 여부 (누르면 SEO 설정으로 이동, 휴대폰에서는 SEO 설정 칸에만 표시) -->
+              <button type="button" class="seo-done-badge" id="seoDoneJump" title="검색 최적화(SEO) 설정으로 이동"></button>
             </div>
             <div class="form-bar-actions">
               <button type="button" class="btn-board btn-board-text" id="btnCancel">취소</button>
@@ -1477,12 +1502,13 @@
           </div>
           <!-- 검색 최적화(SEO): 비워 두면 글 제목 / 본문 앞 약 150자를 자동으로 씀 (글쓰기 화면은 운영자만 열 수 있음) -->
           <details class="seo-box" id="seoBox" open>
-            <summary><i class="fas fa-magnifying-glass" aria-hidden="true"></i> 검색 최적화(SEO) 설정 <span class="seo-summary" id="seoSummary"></span></summary>
+            <summary><i class="fas fa-magnifying-glass" aria-hidden="true"></i> 검색 최적화(SEO) 설정 <span class="seo-summary" id="seoSummary"></span><span class="seo-done-badge"></span></summary>
             <div class="seo-body">
               <!-- SEO 형식 정리: 버튼 한 번으로 형식만 정리 (본문 글자는 그대로, 바로 등록하지 않음) -->
               <div class="seo-tidy">
                 <button type="button" class="btn-board btn-board-plum" id="btnSeoTidy"><i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i> SEO 형식 정리</button>
-                <span>검색 제목·설명 채우기, 맨 앞이 이모지인 줄 → 소제목(h2), 사진 설명(alt) 채우기. 본문 글자는 바꾸지 않습니다.</span>
+                <span class="seo-done-badge" role="status"></span>
+                <span class="seo-tidy-desc">검색 제목·설명 채우기, 맨 앞이 이모지인 줄 → 소제목(h2), 사진 설명(alt) 채우기. 본문 글자는 바꾸지 않습니다.</span>
               </div>
               <div class="seo-result" id="seoResult" role="status" hidden></div>
               <div class="seo-field">
@@ -1849,6 +1875,8 @@
         quill.on('text-change', trackTrimPositions);   // 뺀 꼬리말을 되돌릴 자리 따라가기
         quill.on('text-change', () => scheduleSeoRefresh());   // 검색 설명(자동)을 본문에 맞춰
         quill.on('text-change', trackSeoMarks);   // 'SEO 형식 정리'로 바뀐 곳 표시 따라가기
+        // 정리한 뒤 본문을 고치면 '정리 안 됨'으로 (정리 버튼·되돌리기가 바꾼 것, 글 불러오기·사진 주소 바꾸기는 제외)
+        quill.on('text-change', (_d, _old, source) => { if (source === 'user' && !seoTidyBusy && seoFormatted) setSeoFormatted(false); });
         quill.root.addEventListener('load', e => { if (seoMarksOn && e.target.tagName === 'IMG') scheduleSeoMarks(); }, true);
         quill.root.addEventListener('click', onPhotoSlotClick);
         quill.root.addEventListener('click', onLinkCardClick);
@@ -2976,11 +3004,26 @@
       let formUrl = '';
       let leavingForm = false;   // '나가기'를 고른 뒤 이어지는 뒤로가기는 다시 묻지 않음
       const isFormOpen = () => document.body.classList.contains('board-mode') && boardFormEl.style.display === 'block';
+
+      // --- SEO 형식 정리 완료 여부 (posts.seo_formatted, 운영자 글쓰기 화면·임시저장 글 목록에만 표시) ---
+      // 'SEO 형식 정리'를 누르면 완료, 그 뒤에 글 제목이나 본문을 고치면 다시 '안 됨'. 임시저장·등록할 때 함께 저장
+      let seoFormatted = false;
+      let seoTidyBusy = false;     // 정리 버튼·소제목 되돌리기가 편집기를 바꾸는 중 (운영자가 고친 것으로 치지 않음)
+      let hasSeoFormatted = true;  // posts.seo_formatted 칸이 있는지 (없으면 빼고 저장)
+      function setSeoFormatted(done) {
+        seoFormatted = !!done;
+        document.querySelectorAll('.seo-done-badge').forEach(b => {
+          b.classList.toggle('is-done', seoFormatted);
+          b.innerHTML = seoFormatted
+            ? '<i class="fas fa-circle-check" aria-hidden="true"></i> SEO 형식 정리 완료'
+            : '<i class="fas fa-circle-exclamation" aria-hidden="true"></i> SEO 형식 정리 안 됨';
+        });
+      }
       function formSnapshot() {
         // 본문은 편집기 내용(Delta)으로 비교: 링크 카드 썸네일이 안 열려 아이콘으로 바뀌는 것 같은 화면 변화는 변경으로 치지 않음
         return JSON.stringify([fTitle.value.trim(), fCategory.value,
           seoManual.title ? fSeoTitle.value.trim() : '', seoManual.desc ? fSeoDesc.value.trim() : '',
-          quill ? quill.getContents().ops : []]);
+          seoFormatted, quill ? quill.getContents().ops : []]);
       }
       function markFormClean() { savedSnapshot = formSnapshot(); }
       function hasUnsavedChanges() {
@@ -3198,13 +3241,17 @@
         const isDraft = post.status === 'draft';
         const draftBadge = (isAdmin() && isDraft) ? '<span class="draft-badge"><i class="fas fa-box-archive"></i> 임시저장</span>' : '';
         const catBadge = post.category ? `<span class="cat-badge">${escapeHtml(post.category)}</span>` : '';
+        // SEO 형식 정리 여부 (운영자만, seo_formatted 칸이 없으면 표시 안 함)
+        const seoBadge = !isAdmin() || typeof post.seo_formatted !== 'boolean' ? ''
+          : post.seo_formatted ? '<span class="card-seo is-done"><i class="fas fa-circle-check" aria-hidden="true"></i> SEO 완료</span>'
+          : '<span class="card-seo">SEO 미완료</span>';
         // 카드 전체가 글 주소 링크 (검색엔진이 따라가고, 새 탭으로도 열 수 있게)
         li.innerHTML = `<a class="post-card-link" href="${escapeHtml(postPath(post))}">
           <div class="post-thumb">${thumb ? `<img src="${escapeHtml(thumb)}" alt="${escapeHtml(post.title)}" loading="lazy" />` : ''}</div>
           <div class="post-card-body">
             ${catBadge}
             <h3>${escapeHtml(post.title)}${draftBadge}</h3>
-            <div class="post-meta"><i class="far fa-calendar"></i> ${fmtDate(post.created_at)}</div>
+            <div class="post-meta"><i class="far fa-calendar"></i> ${fmtDate(post.created_at)}${seoBadge}</div>
             <p class="post-excerpt">${escapeHtml(excerpt) || '<em>(내용 없음)</em>'}</p>
           </div></a>`;
         const thumbEl = li.querySelector('.post-thumb');
@@ -3289,6 +3336,7 @@
         input.addEventListener('blur', () => { if (!input.value.trim()) { seoManual[key] = false; refreshSeo(); } });
       });
       fTitle.addEventListener('input', refreshSeo);
+      fTitle.addEventListener('input', () => { if (seoFormatted) setSeoFormatted(false); });   // 정리 후 제목을 고치면 '정리 안 됨'
       // 저장할 값: 직접 고친 칸만, 나머지는 null (자동)
       function seoValues() {
         const t = fSeoTitle.value.trim(), d = fSeoDesc.value.trim();
@@ -3419,7 +3467,12 @@
         const m = seoMarks[i];
         if (!m || m.kind !== 'h2' || !quill) return;
         m.reverted = !m.reverted;
-        quill.formatLine(m.index, 1, 'header', m.reverted ? false : 2, 'user');
+        seoTidyBusy = true;   // 정리 결과를 다듬는 것이라 '고친 것'으로 치지 않음 (정리 완료 상태 그대로)
+        try {
+          quill.formatLine(m.index, 1, 'header', m.reverted ? false : 2, 'user');
+        } finally {
+          seoTidyBusy = false;
+        }
         if (m.reverted) seoHeadingSkip.add(m.label); else seoHeadingSkip.delete(m.label);
         seoMarksOn = true;
         renderSeoMarks();
@@ -3483,8 +3536,18 @@
         if (seoMarksOn) scheduleSeoMarks();
       }
       window.addEventListener('resize', () => { if (seoMarksOn) scheduleSeoMarks(); });
+      // 버튼: 정리하는 동안 편집기 변경은 '고친 것'으로 치지 않고, 끝나면 '정리 완료'
       function runSeoTidy() {
         if (!isAdmin() || !quill) return;
+        seoTidyBusy = true;
+        try {
+          applySeoTidy();
+        } finally {
+          seoTidyBusy = false;
+        }
+        setSeoFormatted(true);
+      }
+      function applySeoTidy() {
         const title = fTitle.value.trim();
         const notes = [];
         clearSeoMarks();
@@ -3522,6 +3585,12 @@
         box.scrollIntoView({ block: 'center' });
       }
       document.getElementById('btnSeoTidy').addEventListener('click', runSeoTidy);
+      // 위쪽 바의 정리 여부 배지 → SEO 설정 칸 열고 정리 버튼으로 이동
+      document.getElementById('seoDoneJump').addEventListener('click', () => {
+        document.getElementById('seoBox').open = true;
+        document.getElementById('btnSeoTidy').scrollIntoView({ block: 'center' });
+      });
+      setSeoFormatted(false);   // 배지 첫 표시
 
       // --- 새 글 폼 ---
       function openNewForm() {
@@ -3536,6 +3605,7 @@
         document.getElementById('seoResult').hidden = true;
         clearSeoMarks();
         seoHeadingSkip.clear();
+        setSeoFormatted(false);
         const q = ensureQuill();
         if (q) q.setContents([]); // 비우기
         refreshSeo();
@@ -3569,6 +3639,7 @@
           q.setContents([]);
           q.clipboard.dangerouslyPasteHTML(0, currentPost.content || '');
         }
+        setSeoFormatted(currentPost.seo_formatted === true);   // 저장된 정리 완료 여부
         refreshSeo();
         hideEditorNotice();
         clearTrim();
@@ -3647,12 +3718,15 @@
         draftsBody.innerHTML = '';
         draftsCache.forEach(p => {
           const title = String(p.title || '').trim();
+          // SEO 형식 정리 여부 (seo_formatted 칸이 없으면 표시 안 함)
+          const seo = p.seo_formatted === true ? '<span class="draft-seo is-done">SEO 완료</span>'
+            : p.seo_formatted === false ? '<span class="draft-seo">SEO 미완료</span>' : '';
           const row = document.createElement('div');
           row.className = 'draft-item';
           row.innerHTML =
             `<button type="button" class="draft-open" title="이 글 불러와서 이어쓰기">` +
             `<span class="draft-title${title ? '' : ' is-empty'}">${escapeHtml(title || '(제목 없음)')}</span>` +
-            `<span class="draft-date">${fmtDateTime(draftTime(p))}</span></button>` +
+            `<span class="draft-date">${fmtDateTime(draftTime(p))}${seo}</span></button>` +
             `<button type="button" class="draft-del" title="삭제" aria-label="삭제"><i class="far fa-trash-can" aria-hidden="true"></i></button>`;
           row.querySelector('.draft-open').addEventListener('click', () => loadDraft(p));
           row.querySelector('.draft-del').addEventListener('click', () => deleteDraft(p));
@@ -3839,11 +3913,13 @@
           if (category) row.category = category;
           if (hasUpdatedAt) row.updated_at = new Date().toISOString();   // 마지막 저장 시각 (임시저장 글 목록에 표시)
           if (hasSourceUrl) row.source_url = formSourceUrl;   // 네이버 원본 주소 (복붙으로 쓴 글은 null)
+          if (hasSeoFormatted) row.seo_formatted = seoFormatted;   // SEO 형식 정리 완료 여부
           let { error } = await write(row);
           // Supabase 에 아직 없는 칸이 있으면 그 칸만 빼고 다시 저장:
-          // updated_at(저장일시)·source_url(원본 주소) 없으면 조용히, seo_title·seo_description 없으면 글은 저장하고 검색 제목·설명만 빼고 안내
+          // updated_at(저장일시)·source_url(원본 주소)·seo_formatted(정리 완료 여부) 없으면 조용히,
+          // seo_title·seo_description 없으면 글은 저장하고 검색 제목·설명만 빼고 안내
           let seoNotSaved = false;
-          for (let retry = 0; retry < 3 && error; retry++) {
+          for (let retry = 0; retry < 4 && error; retry++) {
             const msg = error.message || '';
             if (/updated_at/.test(msg) && 'updated_at' in row) {
               hasUpdatedAt = false;
@@ -3851,6 +3927,10 @@
             } else if (/source_url/.test(msg) && 'source_url' in row) {
               hasSourceUrl = false;
               delete row.source_url;
+            } else if (/seo_formatted/.test(msg) && 'seo_formatted' in row) {
+              console.warn('[게시판] seo_formatted 칸이 없어 SEO 정리 완료 여부는 빼고 저장:', msg);
+              hasSeoFormatted = false;
+              delete row.seo_formatted;
             } else if (/seo_(title|description)/.test(msg) && 'seo_title' in row) {
               console.warn('[게시판] seo_title·seo_description 칸이 없어 검색 제목·설명은 빼고 저장:', msg);
               delete row.seo_title;
