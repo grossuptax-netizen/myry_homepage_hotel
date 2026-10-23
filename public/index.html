@@ -919,8 +919,11 @@
     .seo-changes button:hover { background: #e4f2de; }
     .seo-changes ol { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
     .seo-changes li { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; min-width: 0; }
-    .seo-change-tag { flex: none; padding: 1px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 700; background: var(--gold-light); color: var(--plum); }
-    .seo-change-tag.is-alt { background: #e9e2f5; }
+    /* 딱지: 이미 정리돼 있던 곳은 옅게, 이번에 바뀐 곳(is-fresh)은 진하게 */
+    .seo-change-tag { flex: none; padding: 1px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 700; background: #f6eedb; color: #8a6d2f; }
+    .seo-change-tag.is-alt { background: #f1ecf8; color: #6f5a9c; }
+    .seo-change-tag.is-fresh { background: var(--gold); color: #fff; }
+    .seo-change-tag.is-alt.is-fresh { background: #8a6fc0; color: #fff; }
     .seo-change-text {
       flex: 1 1 140px; min-width: 0; color: #33302e; line-height: 1.45; overflow-wrap: anywhere;
       display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
@@ -947,6 +950,11 @@
       background: #fff; color: #9a3b1e; font-size: 0.7rem; font-weight: 800; cursor: pointer;
     }
     .seo-mark-undo:hover { background: #fbeee8; }
+    /* 이미 정리돼 있던 곳: 옅은 점선 테두리 */
+    .seo-mark.is-existing { border-style: dotted; border-color: #dcc68f; background: rgba(203, 169, 97, 0.04); }
+    .seo-mark.is-existing .seo-mark-tag { background: #bfa76f; }
+    .seo-mark-alt.is-existing { border-color: #bcaee0; background: rgba(138, 111, 192, 0.04); }
+    .seo-mark-alt.is-existing .seo-mark-tag { background: #a594cf; }
     .seo-mark.is-reverted { border-style: dashed; border-color: #b8b0c4; background: rgba(150, 140, 165, 0.08); }
     .seo-mark.is-reverted .seo-mark-tag { background: #9a8fb0; }
     .seo-mark.is-reverted .seo-mark-undo { color: #2f5a24; }
@@ -3422,6 +3430,29 @@
         return changed;
       }
 
+      // 이번에 바꾸지 않았지만 이미 정리돼 있는 곳: 소제목(h2) 줄, 설명(alt)이 있는 사진. fresh: 이번에 바꾼 곳 목록
+      function existingSeoSpots(fresh) {
+        const taken = new Set(fresh.map(m => `${m.kind}:${m.index}`));
+        const spots = [];
+        quill.getLines(0, quill.getLength()).forEach(line => {
+          if (line.statics.blotName !== 'header') return;
+          const index = quill.getIndex(line);
+          const text = flatText(line.domNode.textContent);
+          if (!text || taken.has(`h2:${index}`)) return;
+          spots.push({ index, length: Math.max(1, line.length() - 1), kind: 'h2', label: text, existing: true });
+        });
+        let index = 0, n = 0;
+        quill.getContents().ops.forEach(op => {
+          if (op.insert && typeof op.insert === 'object' && op.insert.image) {
+            n++;
+            const alt = String((op.attributes && op.attributes.alt) || '').trim();
+            if (alt && !taken.has(`alt:${index}`)) spots.push({ index, length: 1, kind: 'alt', label: `사진 ${n}: “${alt}”`, existing: true });
+          }
+          index += typeof op.insert === 'string' ? op.insert.length : 1;
+        });
+        return spots;
+      }
+
       // --- 'SEO 형식 정리'로 바뀐 곳 보여 주기 ---
       // 편집기 위에 금색 테두리를 겹쳐 그리기만 함 (편집기 글 안이 아니라 저장되는 내용에는 안 들어감).
       // 글을 고치면 표시 위치도 따라 옮김. 결과 상자의 '위치 보기'로 그 자리로 이동.
@@ -3450,15 +3481,15 @@
           const b = quill.getBounds(m.index, Math.min(m.length, max - m.index));
           if (!b) return;
           const el = document.createElement('div');
-          el.className = `seo-mark seo-mark-${m.kind}${m.reverted ? ' is-reverted' : ''}`;
+          el.className = `seo-mark seo-mark-${m.kind}${m.existing ? ' is-existing' : ''}${m.reverted ? ' is-reverted' : ''}`;
           // 되돌린 줄은 소제목처럼 위 여백이 없어 딱지가 윗줄 글자를 가리므로, 오른쪽에 자리가 있으면 줄 오른쪽에
           if (m.reverted && quill.container.clientWidth - (b.left + b.width + 12) > 190) el.classList.add('tag-right');
           el.dataset.i = i;
           el.style.cssText = `top:${b.top - 4}px;left:${Math.max(0, b.left - 6)}px;width:${b.width + 12}px;height:${b.height + 8}px`;
           el.innerHTML = m.kind === 'h2'
-            ? `<span class="seo-mark-tag">${m.reverted ? '일반 글로 되돌림' : '소제목(h2)으로 바뀜'}` +
+            ? `<span class="seo-mark-tag">${m.reverted ? '일반 글로 되돌림' : m.existing ? '소제목(h2)' : '소제목(h2)으로 바뀜'}` +
               `<button type="button" class="seo-mark-undo" data-i="${i}">${m.reverted ? '다시 소제목으로' : '되돌리기'}</button></span>`
-            : '<span class="seo-mark-tag">사진 설명 추가</span>';
+            : `<span class="seo-mark-tag">${m.existing ? '사진 설명 있음' : '사진 설명 추가'}</span>`;
           layer.appendChild(el);
         });
       }
@@ -3483,16 +3514,18 @@
         const wrap = document.getElementById('seoChanges');
         if (!wrap) return;
         const items = seoMarks.map((m, i) => {
-          const tag = m.kind === 'h2' ? (m.reverted ? '일반 글' : '소제목') : '사진 설명';
+          // 이번에 바뀐 곳은 진한 딱지에 '새로', 이미 정리돼 있던 곳은 옅은 딱지
+          const tag = m.kind === 'h2' && m.reverted ? '일반 글'
+            : `${m.kind === 'h2' ? '소제목' : '사진 설명'}${m.existing ? '' : ' · 새로'}`;
           const label = m.label.length > 46 ? m.label.slice(0, 46) + '…' : m.label;
-          return `<li${m.reverted ? ' class="is-reverted"' : ''}><span class="seo-change-tag is-${m.kind}">${tag}</span>` +
+          return `<li${m.reverted ? ' class="is-reverted"' : ''}><span class="seo-change-tag is-${m.kind}${m.existing ? '' : ' is-fresh'}">${tag}</span>` +
             `<span class="seo-change-text">${escapeHtml(label)}</span><span class="seo-change-btns">` +
             `<button type="button" data-show="${i}">위치 보기</button>` +
             (m.kind === 'h2' ? `<button type="button" class="seo-change-undo" data-undo="${i}">${m.reverted ? '다시 소제목으로' : '되돌리기'}</button>` : '') +
             '</span></li>';
         }).join('');
-        wrap.innerHTML = '<div class="seo-changes-head"><b>본문에서 바뀐 곳</b>' +
-          '<span>편집기에 금색 테두리로 표시됩니다 (글에는 저장되지 않음). 소제목이 아닌 줄은 ‘되돌리기’를 누르세요.</span>' +
+        wrap.innerHTML = '<div class="seo-changes-head"><b>본문의 소제목·사진 설명</b>' +
+          '<span>편집기에 테두리로 표시됩니다 (글에는 저장되지 않음). 이번에 바뀐 곳은 ‘새로’가 붙고, 이미 정리돼 있던 곳은 옅게 보입니다. 소제목이 아닌 줄은 ‘되돌리기’를 누르세요.</span>' +
           `<button type="button" id="seoMarkToggle">${seoMarksOn ? '표시 끄기' : '편집기에 표시'}</button></div>` +
           `<ol>${items}</ol>`;
       }
@@ -3566,13 +3599,19 @@
           if (desc) { fSeoDesc.value = desc; seoManual.desc = desc !== autoSeoDesc(); notes.push(`검색 설명: 본문 앞 ${desc.length}자 (문장 단위)`); }
           else notes.push('검색 설명: 본문에 글자가 없어 채우지 못했습니다.');
         }
-        const keptNote = kept ? ` (되돌린 줄 ${kept}개는 그대로 둠)` : '';
-        notes.push(headings.length ? `소제목(h2): 맨 앞이 이모지인 줄 ${headings.length}개${keptNote}` : `소제목(h2): 바꿀 줄이 없었습니다.${keptNote}`);
         const alts = fillImageAlts(cleanSeoTitle(title) || title);   // 사진 설명에는 이모지·장식 뺀 제목
-        notes.push(alts.length ? `사진 설명(alt): ${alts.length}장 채움` : '사진 설명(alt): 비어 있는 사진이 없었습니다.');
+        // 이미 정리돼 있던 곳(전에 정리했거나 원래 있던 소제목·사진 설명)도 함께 보여 줌
+        const existing = existingSeoSpots([...headings, ...alts]);
+        const oldH2 = existing.filter(m => m.kind === 'h2').length;
+        const oldAlt = existing.length - oldH2;
+        const keptNote = kept ? ` (되돌린 줄 ${kept}개는 그대로 둠)` : '';
+        notes.push((headings.length ? `소제목(h2): 맨 앞이 이모지인 줄 ${headings.length}개를 새로 바꿈` : '소제목(h2): 새로 바꿀 줄이 없었습니다.') +
+          (oldH2 ? ` · 이미 소제목인 줄 ${oldH2}개` : '') + keptNote);
+        notes.push((alts.length ? `사진 설명(alt): ${alts.length}장 새로 채움` : '사진 설명(alt): 새로 채울 사진이 없었습니다.') +
+          (oldAlt ? ` · 이미 설명이 있는 사진 ${oldAlt}장` : ''));
         renderSeoStates();
-        // 바뀐 곳: 편집기에 금색 테두리로 표시하고, 목록에서 '위치 보기'로 이동
-        seoMarks = [...headings, ...alts].sort((a, b) => a.index - b.index);
+        // 편집기에 테두리로 표시하고, 목록에서 '위치 보기'로 이동 (이번에 바뀐 곳은 진하게 + '새로')
+        seoMarks = [...headings, ...alts, ...existing].sort((a, b) => a.index - b.index);
         seoMarksOn = seoMarks.length > 0;
         renderSeoMarks();
         const box = document.getElementById('seoResult');
