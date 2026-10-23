@@ -1409,12 +1409,11 @@
                   <li>위의 보라색 <b>네이버 글 담기</b> 버튼을 마우스로 꾹 눌러 즐겨찾기 막대 위로 끌어다 놓습니다.</li>
                   <li>네이버에 로그인한 뒤 가져올 카페·블로그 글을 엽니다.</li>
                   <li>즐겨찾기 막대의 <b>네이버 글 담기</b>를 누르면 네이버 화면 오른쪽 위에 상자가 뜹니다.
-                    <b>홈페이지 글쓰기로 보내기</b>를 누르면 새 탭의 글쓰기에 제목·본문·사진이 자동으로 들어갑니다.
-                    (또는 <b>복사하기</b> → 이 글쓰기 내용 칸에 Ctrl+V)</li>
+                    <b>호텔 홈페이지로 보내기</b> 또는 <b>정육점 홈페이지로 보내기</b>를 누르면, 그 홈페이지 글쓰기가 새 탭으로 열리고 제목·본문·사진이 자동으로 들어갑니다.</li>
                 </ol>
                 <p class="clip-alt">끌어다 놓기가 안 되면: <button type="button" class="btn-board btn-board-outline" id="clipCopyCode">버튼 코드 복사</button>
                   → 즐겨찾기 막대 빈 곳을 오른쪽 클릭 → ‘페이지 추가’(엣지: ‘즐겨찾기 추가’) → 이름에 <b>네이버 글 담기</b>, URL 칸에 Ctrl+V → 저장</p>
-                <p class="clip-alt">이 버튼은 글을 <b id="clipSite"></b> 으로 보냅니다. 실제 사이트용 버튼은 실제 사이트의 글쓰기 화면에서 끌어다 놓으세요.</p>
+                <p class="clip-alt">‘호텔 홈페이지로 보내기’는 <b id="clipSite"></b> 으로, ‘정육점 홈페이지로 보내기’는 <b>https://jung6tax.com</b> 으로 보냅니다. 실제 호텔 사이트용 버튼은 실제 사이트의 글쓰기 화면에서 끌어다 놓으세요.</p>
               </div>
             </details>
             <div id="editorUploading"><i class="fas fa-spinner fa-spin"></i> 사진 업로드 중...</div>
@@ -3674,14 +3673,17 @@
           '.top button{background:none;border:0;color:#fff;font-size:22px;cursor:pointer;line-height:1}' +
           '.body{padding:12px 14px}.msg{word-break:keep-all}.msg b{display:block;margin-bottom:2px}.err{color:#b3261e}' +
           '.btn{display:block;width:100%;margin-top:8px;padding:9px;border-radius:8px;border:1.5px solid #3d2b56;font:700 14px "Malgun Gothic",sans-serif;cursor:pointer}' +
-          '.send{background:#3d2b56;color:#fff}.copy{background:#fff;color:#3d2b56}.btn:disabled{opacity:.5;cursor:default}' +
+          '.send{background:#3d2b56;color:#fff}.btn:disabled{opacity:.5;cursor:default}' +
           '.hint{margin:10px 0 0;font-size:12px;color:#6b5a85;word-break:keep-all}' +
           '</style><div class="box"><div class="top"><span>명륜세무회계 · 네이버 글 담기</span><button type="button" class="x" aria-label="닫기">×</button></div>' +
           '<div class="body"><div class="msg">글을 읽는 중…</div><div class="act" hidden>' +
-          '<button type="button" class="btn send">홈페이지 글쓰기로 보내기</button>' +
-          '<button type="button" class="btn copy">복사하기 (글쓰기 내용 칸에 Ctrl+V)</button>' +
-          '<p class="hint">보내면 홈페이지 글쓰기가 새 탭으로 열리고 글이 자동으로 들어갑니다. 구분선 아래 홍보 영역은 빠지고, 사진은 Cloudinary 로 옮겨집니다.</p>' +
+          '<button type="button" class="btn send" data-to="hotel">호텔 홈페이지로 보내기</button>' +
+          '<button type="button" class="btn send" data-to="meat">정육점 홈페이지로 보내기</button>' +
+          '<p class="hint">누르면 그 홈페이지 글쓰기가 새 탭으로 열리고 글이 자동으로 들어갑니다. 구분선 아래 홍보 영역은 빠지고, 사진은 Cloudinary 로 옮겨집니다.</p>' +
           '</div></div></div>';
+        // 보낼 곳: 호텔 = 이 버튼을 설치한 홈페이지(실제 사이트에서 설치하면 https://myhoteltax.com), 정육점 = https://jung6tax.com
+        // 두 곳 모두 보내는 방법(새 탭 + 0.4초마다 postMessage, 최대 60초)·데이터·받았다는 답(ack)은 같음
+        const TARGETS = { hotel: { url: SITE, name: '호텔 홈페이지' }, meat: { url: 'https://jung6tax.com', name: '정육점 홈페이지' } };
         document.body.appendChild(host);
         const $ = (s) => root.querySelector(s);
         const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -3749,18 +3751,21 @@
           return r;
         }
 
-        function send(clip) {
-          const w = window.open(SITE + '/#naver-clip', '_blank');
-          if (!w) { say('새 탭이 막혔습니다. 주소창 오른쪽의 팝업 차단 표시를 눌러 허용한 뒤 다시 누르거나, 복사하기를 써 주세요.', true); return; }
-          $('.send').disabled = true;
-          say('홈페이지로 보내는 중… (새 탭)');
+        // target = 보낼 홈페이지 주소(origin), name = 안내용 이름. 받는 쪽이 답(ack)할 때까지 0.4초마다 보냄 (최대 60초)
+        function send(clip, target, name) {
+          const w = window.open(target + '/#naver-clip', '_blank');
+          if (!w) { say('새 탭이 막혔습니다. 주소창 오른쪽의 팝업 차단 표시를 눌러 허용한 뒤 다시 눌러 주세요.', true); return; }
+          const buttons = root.querySelectorAll('.send');
+          buttons.forEach((b) => { b.disabled = true; });
+          say(name + '로 보내는 중… (새 탭)');
           let done = false;
           const started = Date.now();
           const onAck = (e) => {
-            if (e.origin !== SITE || !e.data || e.data.type !== 'myry-naver-clip-ack' || e.data.id !== clip.id) return;
+            if (e.origin !== target || !e.data || e.data.type !== 'myry-naver-clip-ack' || e.data.id !== clip.id) return;
             done = true;
             window.removeEventListener('message', onAck);
-            say('<b>보냈습니다.</b>새 탭의 홈페이지 글쓰기를 확인해 주세요. 운영자 로그인이 안 돼 있으면 로그인하는 즉시 들어갑니다.');
+            buttons.forEach((b) => { b.disabled = false; });   // 다른 홈페이지로도 이어서 보낼 수 있게
+            say('<b>' + name + '로 보냈습니다.</b>새 탭의 글쓰기를 확인해 주세요. 운영자 로그인이 안 돼 있으면 로그인하는 즉시 들어갑니다.');
           };
           window.addEventListener('message', onAck);
           const timer = setInterval(() => {
@@ -3768,36 +3773,12 @@
             if (w.closed || Date.now() - started > 60000) {
               clearInterval(timer);
               window.removeEventListener('message', onAck);
-              $('.send').disabled = false;
-              say('홈페이지에 전달하지 못했습니다. 복사하기를 누른 뒤 글쓰기 내용 칸에 Ctrl+V 로 붙여넣어 주세요.', true);
+              buttons.forEach((b) => { b.disabled = false; });
+              say(name + '에 전달하지 못했습니다. 새 탭에 홈페이지 글쓰기가 열렸는지 확인한 뒤 다시 눌러 주세요.', true);
               return;
             }
-            try { w.postMessage(clip, SITE); } catch (e) {}   // 홈페이지가 다 열릴 때까지 되풀이 (열리기 전 것은 버려짐)
+            try { w.postMessage(clip, target); } catch (e) {}   // 홈페이지가 다 열릴 때까지 되풀이 (열리기 전 것은 버려짐)
           }, 400);
-        }
-        async function copy(clip, text) {
-          // 제목·원본 주소는 홈페이지가 읽어서 제목 칸·중복 확인에 씀 (이 줄 자체는 본문에 안 들어감)
-          const html = '<h1 data-myry-title="1" data-myry-source="' + esc(clip.sourceUrl) + '">' + esc(clip.title) + '</h1>' + clip.html;
-          const plain = clip.title + '\n\n' + text;
-          let ok = false;
-          const onCopy = (e) => {
-            e.clipboardData.setData('text/html', html);
-            e.clipboardData.setData('text/plain', plain);
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            ok = true;
-          };
-          document.addEventListener('copy', onCopy, true);
-          try { document.execCommand('copy'); } catch (e) {}
-          document.removeEventListener('copy', onCopy, true);
-          if (!ok) {
-            try {
-              await navigator.clipboard.write([new ClipboardItem({
-                'text/html': new Blob([html], { type: 'text/html' }), 'text/plain': new Blob([plain], { type: 'text/plain' }) })]);
-              ok = true;
-            } catch (e) {}
-          }
-          say(ok ? '<b>복사했습니다.</b>홈페이지 글쓰기의 내용 칸을 누르고 Ctrl+V 로 붙여넣으세요.' : '복사하지 못했습니다. 보내기를 써 주세요.', !ok);
         }
 
         const isCafe = /(^|\.)cafe\.naver\.com$/.test(location.hostname);
@@ -3813,13 +3794,12 @@
             !img.closest('.se-module-oglink, .se-sticker, .se-module-sticker') && /^https?:/.test(img.getAttribute('src') || '')).length;
           const clip = { type: 'myry-naver-clip', id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
                          title: r.title, html: d.body.innerHTML, source: location.href, sourceUrl: r.sourceUrl || '' };
-          const plain = d.body.cloneNode(true);   // 글자만 붙여넣는 곳을 위한 줄바꿈 살린 글
-          plain.querySelectorAll('br').forEach((br) => br.replaceWith('\n'));
-          plain.querySelectorAll('p, li, tr, h1, h2, h3, h4').forEach((el) => el.append('\n'));
-          say('<b>' + esc(r.title || '(제목 없음)') + '</b>사진 ' + photos + '장을 포함해 글을 담았습니다.');
+          say('<b>' + esc(r.title || '(제목 없음)') + '</b>사진 ' + photos + '장을 포함해 글을 담았습니다. 보낼 홈페이지를 고르세요.');
           $('.act').hidden = false;
-          $('.send').onclick = () => send(clip);
-          $('.copy').onclick = () => copy(clip, plain.textContent.replace(/[ \t ]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim());
+          root.querySelectorAll('.send').forEach((b) => {
+            const t = TARGETS[b.dataset.to];
+            b.onclick = () => send(clip, t.url, t.name);
+          });
         }).catch((e) => say(esc((e && e.message) || e), true));
       }
       // 즐겨찾기 주소로 만들기 (줄 주석·들여쓰기를 빼서 짧게)
