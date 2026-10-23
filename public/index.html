@@ -4088,15 +4088,15 @@
           '.top button{background:none;border:0;color:#fff;font-size:22px;cursor:pointer;line-height:1}' +
           '.body{padding:12px 14px}.msg{word-break:keep-all}.msg b{display:block;margin-bottom:2px}.err{color:#b3261e}' +
           '.btn{display:block;width:100%;margin-top:8px;padding:9px;border-radius:8px;border:1.5px solid #3d2b56;font:700 14px "Malgun Gothic",sans-serif;cursor:pointer}' +
-          '.send{background:#3d2b56;color:#fff}.btn:disabled{opacity:.5;cursor:default}' +
+          '.send{background:#3d2b56;color:#fff}.send.meat{background:#9a2a2a;border-color:#9a2a2a}.btn:disabled{opacity:.5;cursor:default}' +
           '.hint{margin:10px 0 0;font-size:12px;color:#6b5a85;word-break:keep-all}' +
           '</style><div class="box"><div class="top"><span>명륜세무회계 · 네이버 글 담기</span><button type="button" class="x" aria-label="닫기">×</button></div>' +
           '<div class="body"><div class="msg">글을 읽는 중…</div><div class="act" hidden>' +
           '<button type="button" class="btn send" data-to="hotel">호텔 홈페이지로 보내기</button>' +
-          '<button type="button" class="btn send" data-to="meat">정육점 홈페이지로 보내기</button>' +
+          '<button type="button" class="btn send meat" data-to="meat">정육점 홈페이지로 보내기</button>' +
           '<p class="hint">누르면 그 홈페이지 글쓰기가 새 탭으로 열리고 글이 자동으로 들어갑니다. 구분선 아래 홍보 영역은 빠지고, 사진은 Cloudinary 로 옮겨집니다.</p>' +
           '</div></div></div>';
-        // 보낼 곳: 호텔 = 이 버튼을 설치한 홈페이지(실제 사이트에서 설치하면 https://myhoteltax.com), 정육점 = https://jung6tax.com
+        // 보낼 곳: 호텔 = 이 버튼을 설치한 홈페이지(실제 사이트에서 설치하면 https://myhoteltax.com, 보라 버튼), 정육점 = https://jung6tax.com(벽돌색 버튼)
         // 두 곳 모두 보내는 방법(새 탭 + 0.4초마다 postMessage, 최대 60초)·데이터·받았다는 답(ack)은 같음
         const TARGETS = { hotel: { url: SITE, name: '호텔 홈페이지' }, meat: { url: 'https://jung6tax.com', name: '정육점 홈페이지' } };
         document.body.appendChild(host);
