@@ -771,7 +771,7 @@
     .leave-body { padding: 26px 24px 8px; }
     .leave-body h3 { margin: 0 0 10px; font-size: 1.08rem; font-weight: 900; color: var(--plum); line-height: 1.45; }
     .leave-body h3 i { margin-right: 6px; color: var(--gold-dark); }
-    .leave-body p { margin: 0; font-size: 0.93rem; color: #5e5372; line-height: 1.6; }
+    .leave-body p { margin: 0; font-size: 0.93rem; color: #5e5372; line-height: 1.6; white-space: pre-line; word-break: keep-all; }
     .leave-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 18px 24px 22px; }
     .leave-actions .btn-board { min-height: 44px; padding: 10px 20px; }
     @media (max-width: 560px) { .leave-actions .btn-board { flex: 1; justify-content: center; } }
@@ -1450,16 +1450,16 @@
         </div>
       </div>
 
-      <!-- 저장하지 않고 글쓰기 화면을 나가려 할 때 확인창 -->
-      <div class="drafts-modal" id="leaveModal" hidden>
-        <div class="drafts-dialog leave-dialog" role="alertdialog" aria-modal="true" aria-labelledby="leaveTitle" aria-describedby="leaveDesc">
+      <!-- 확인창 (저장 안 하고 나가기, 중복 글 경고 등): 문구·버튼 이름은 열 때마다 채움 -->
+      <div class="drafts-modal" id="choiceModal" hidden>
+        <div class="drafts-dialog leave-dialog" role="alertdialog" aria-modal="true" aria-labelledby="choiceTitle" aria-describedby="choiceDesc">
           <div class="leave-body">
-            <h3 id="leaveTitle"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i> 작성 중인 내용이 저장되지 않았습니다.</h3>
-            <p id="leaveDesc">정말 나가시겠습니까? 저장하지 않은 내용은 사라집니다.</p>
+            <h3><i class="fas fa-triangle-exclamation" aria-hidden="true"></i> <span id="choiceTitle"></span></h3>
+            <p id="choiceDesc"></p>
           </div>
           <div class="leave-actions">
-            <button type="button" class="btn-board btn-board-danger" id="leaveGo">나가기</button>
-            <button type="button" class="btn-board btn-board-gold" id="leaveStay">계속 작성</button>
+            <button type="button" class="btn-board" id="choiceOk"></button>
+            <button type="button" class="btn-board" id="choiceCancel"></button>
           </div>
         </div>
       </div>
@@ -1719,6 +1719,7 @@
       let currentUser = null;      // 로그인 사용자
       let editingId   = null;      // 수정 중인 글 id (null이면 새 글)
       let editingPublished = false;   // 수정 중인 글이 공개(등록)된 글인지 → 임시저장하면 비공개로 바뀌므로 확인
+      let formSourceUrl = null;       // 글쓰기 중인 글의 네이버 원본 주소 (N 버튼·네이버 글 담기로 가져왔을 때, 저장 시 posts.source_url)
       let currentPost = null;      // 상세 화면에 표시 중인 글
       let quill       = null;      // Quill 에디터 인스턴스
       let allPosts    = [];        // 불러온 전체 글 (필터는 이 목록에서 거름)
@@ -1901,8 +1902,9 @@
           return;
         }
         closeLinkCardBar();
-        if (!fTitle.value.trim() && json.title) fTitle.value = json.title;   // 제목이 비어 있으면 네이버 글 제목으로
-        insertExternalHtml(json.html, '', linkCardRange);
+        // 제목이 비어 있으면 네이버 글 제목으로. 같은 원본 주소의 글이 이미 있으면 먼저 알림
+        await importExternalArticle({ html: json.html, range: linkCardRange, title: json.title,
+          sourceUrl: json.sourceUrl || canonicalNaverUrl(url) });
       }
       function closeLinkCardBar() {
         linkCardBar.hidden = true;
@@ -2461,7 +2463,12 @@
         if (!html && !text) return;
         e.preventDefault();
         e.stopPropagation();
-        insertExternalHtml(html, text, quill.getSelection(true));
+        const range = quill.getSelection(true);
+        // '네이버 글 담기'의 복사하기로 붙여넣은 글: 원본 주소가 함께 와서 중복 확인 후 넣음 (그냥 복붙은 원본 주소 없음)
+        const marked = html && html.includes('data-myry-source') ? parseHtml(html).body.querySelector('[data-myry-source]') : null;
+        const sourceUrl = marked ? canonicalNaverUrl(marked.getAttribute('data-myry-source')) : null;
+        if (sourceUrl) importExternalArticle({ html, text, range, sourceUrl });
+        else insertExternalHtml(html, text, range);
       }
       // 외부 글(붙여넣기·네이버 글 주소로 가져오기)을 정리해서 range 자리에 넣고, 외부 사진은 Cloudinary 로 옮기기
       function insertExternalHtml(html, text, range) {
@@ -2917,27 +2924,42 @@
         if (!editingId && !fTitle.value.trim() && editorIsEmpty()) return false;   // 아무것도 안 쓴 새 글
         return formSnapshot() !== savedSnapshot;
       }
-      // 확인창: true = 나가기, false = 계속 작성 (바깥 클릭·Esc 도 계속 작성)
-      const leaveModal = document.getElementById('leaveModal');
-      let leaveAnswer = null;
-      function askLeave() {
+      // 확인창 공통: true = 앞 버튼(ok), false = 뒤 버튼(cancel)·바깥 클릭·Esc
+      // style: 'danger'(빨간 테두리) | 'gold'(포인트) | 'text'(글자만)
+      const choiceModal = document.getElementById('choiceModal');
+      const choiceOk = document.getElementById('choiceOk');
+      const choiceCancel = document.getElementById('choiceCancel');
+      let choiceAnswer = null;
+      function askChoice({ title, message, ok, cancel, okStyle = 'gold', cancelStyle = 'text' }) {
+        document.getElementById('choiceTitle').textContent = title;
+        document.getElementById('choiceDesc').textContent = message;
+        choiceOk.textContent = ok;
+        choiceCancel.textContent = cancel;
+        choiceOk.className = `btn-board btn-board-${okStyle}`;
+        choiceCancel.className = `btn-board btn-board-${cancelStyle}`;
         return new Promise((resolve) => {
-          leaveAnswer = resolve;
-          leaveModal.hidden = false;
-          document.getElementById('leaveStay').focus();
+          choiceAnswer = resolve;
+          choiceModal.hidden = false;
+          (cancelStyle === 'gold' ? choiceCancel : choiceOk).focus();
         });
       }
-      function answerLeave(go) {
-        if (leaveModal.hidden) return;
-        leaveModal.hidden = true;
-        const resolve = leaveAnswer;
-        leaveAnswer = null;
-        if (resolve) resolve(go);
+      function answerChoice(yes) {
+        if (choiceModal.hidden) return;
+        choiceModal.hidden = true;
+        const resolve = choiceAnswer;
+        choiceAnswer = null;
+        if (resolve) resolve(yes);
       }
-      document.getElementById('leaveGo').addEventListener('click', () => answerLeave(true));
-      document.getElementById('leaveStay').addEventListener('click', () => answerLeave(false));
-      leaveModal.addEventListener('click', (e) => { if (e.target === leaveModal) answerLeave(false); });
-      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') answerLeave(false); });
+      choiceOk.addEventListener('click', () => answerChoice(true));
+      choiceCancel.addEventListener('click', () => answerChoice(false));
+      choiceModal.addEventListener('click', (e) => { if (e.target === choiceModal) answerChoice(false); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') answerChoice(false); });
+      // 저장 안 하고 나가기: true = 나가기, false = 계속 작성
+      const askLeave = () => askChoice({
+        title: '작성 중인 내용이 저장되지 않았습니다.',
+        message: '정말 나가시겠습니까? 저장하지 않은 내용은 사라집니다.',
+        ok: '나가기', cancel: '계속 작성', okStyle: 'danger', cancelStyle: 'gold'
+      });
       // 글쓰기 화면을 벗어나도 되는지: 저장 안 된 변경이 없거나 '나가기'를 고르면 true
       async function confirmLeaveForm() {
         return !hasUnsavedChanges() || askLeave();
@@ -3217,6 +3239,7 @@
         if (!isAdmin()) return;
         editingId = null;
         editingPublished = false;
+        formSourceUrl = null;
         formTitleEl.textContent = '새 글 작성';
         fTitle.value = '';
         fCategory.value = '';
@@ -3236,6 +3259,7 @@
         if (!isAdmin() || !currentPost) return;
         editingId = currentPost.id;
         editingPublished = currentPost.status === 'published';
+        formSourceUrl = currentPost.source_url || null;   // 고쳐 저장해도 원본 주소는 그대로
         formTitleEl.textContent = (currentPost.status === 'draft') ? '임시저장 글 이어쓰기' : '글 수정';
         fTitle.value = currentPost.title || '';
         fCategory.value = currentPost.category || '';   // 기존 카테고리 선택 상태로 표시
@@ -3361,6 +3385,91 @@
           alert('삭제에 실패했습니다.\n\n(원인: ' + ((err && err.message) || err) + ')');
         }
       }
+      // --- 중복 글 경고 (운영자 글쓰기·수정 화면에서만) ---
+      // 1) 네이버 글을 가져온 직후: 같은 원본 주소(source_url)의 글이 있으면 알림 → 취소하면 글쓰기 칸을 비움
+      // 2) '등록' 직전: 같은 원본 주소, 또는 제목이 같으면서 본문 앞 약 300자도 같은 글이 있으면 확인
+      //    (공백·대소문자만 무시하므로, 제목이 같아도 연도·내용이 다른 글은 통과. 수정 중인 글 자신은 빼고 비교)
+      let hasSourceUrl = true;   // posts.source_url 칸이 있는지 (없으면 원본 주소는 빼고 저장·비교)
+      // 네이버 글 주소 → 늘 같은 모양 (카페: 카페 번호·글 번호 / 블로그: 블로그 아이디·글 번호). 네이버 주소가 아니면 null
+      function canonicalNaverUrl(raw) {
+        let u;
+        try { u = new URL(String(raw || '')); } catch (e) { return null; }
+        const host = u.hostname.toLowerCase().replace(/^m\./, '');
+        if (host === 'cafe.naver.com') {
+          let m = u.pathname.match(/\/cafes\/(\d+)\/articles\/(\d+)/);
+          if (m) return `https://cafe.naver.com/ca-fe/cafes/${m[1]}/articles/${m[2]}`;
+          const inner = decodeURIComponent(u.searchParams.get('iframe_url_utf8') || u.searchParams.get('iframe_url') || '') + '&' + u.search;
+          const club = inner.match(/clubid=(\d+)/i), art = inner.match(/articleid=(\d+)/i);
+          if (club && art) return `https://cafe.naver.com/ca-fe/cafes/${club[1]}/articles/${art[1]}`;
+          m = u.pathname.match(/^\/([A-Za-z0-9_-]+)\/(\d+)\/?$/);
+          return m ? `https://cafe.naver.com/${m[1]}/${m[2]}` : null;
+        }
+        if (host === 'blog.naver.com') {
+          const blogId = u.searchParams.get('blogId'), logNo = u.searchParams.get('logNo');
+          if (blogId && /^\d+$/.test(logNo || '')) return `https://blog.naver.com/${blogId}/${logNo}`;
+          const m = u.pathname.match(/^\/([A-Za-z0-9_-]+)\/(\d+)\/?$/);
+          return m ? `https://blog.naver.com/${m[1]}/${m[2]}` : null;
+        }
+        return null;
+      }
+      const postStamp = (p) => `${p.status === 'draft' ? '임시저장' : '등록'} ${fmtDate(p.created_at)}`;
+      // 같은 원본 주소로 저장된 글 (수정 중인 글 자신 제외)
+      async function findPostsBySource(url) {
+        if (!url || !hasSourceUrl || !isAdmin()) return [];
+        const { data, error } = await sb.from('posts').select('id, title, status, created_at').eq('source_url', url);
+        if (error) {
+          if (/source_url/.test(error.message || '')) hasSourceUrl = false;
+          console.warn('[게시판] 원본 주소로 중복 확인 실패:', error.message);
+          return [];
+        }
+        return (data || []).filter(p => p.id !== editingId);
+      }
+      // 비교용 글자: 공백·보이지 않는 글자 빼고 소문자로
+      const squash = (s) => String(s || '').normalize('NFC').toLowerCase().replace(/[\s ​-‍⁠﻿]+/g, '');
+      // 제목은 문장부호(! ? ~ · 등)·괄호 기호·이모지(🚨💰)도 빼고 비교 — 글자·숫자만 남으므로 연도가 다르면 다른 제목
+      const squashTitle = (s) => squash(s).replace(/[\p{P}\p{S}\p{M}‍]/gu, '');
+      const bodyHead = (html) => squash(htmlToText(html)).slice(0, 300);   // 본문 앞 약 300자 (사진·빈 줄 제외)
+      const BODY_ONLY_MIN = 30;   // 제목이 달라도 '본문만 같아서' 경고할 때 본문 앞부분이 이만큼은 돼야 (아주 짧은 본문끼리 우연히 같은 것 제외)
+      // '등록' 직전 중복 후보 (수정 중인 글 자신 제외):
+      //  · 같은 네이버 원본 주소
+      //  · 본문 앞 약 300자가 같은 글 — 제목도 같으면 바로, 제목이 달라도 본문이 30자 이상이면 경고
+      //    (본문이 한 글자라도 다르면 통과: 제목이 같아도 연도만 다른 신고 안내 글 등은 다른 글)
+      async function findDuplicatesForPublish(title, content) {
+        const found = new Map();
+        (await findPostsBySource(formSourceUrl)).forEach(p => found.set(p.id, { ...p, why: '같은 네이버 원본' }));
+        const t = squashTitle(title), head = bodyHead(content);
+        if (head) {
+          const { data: all, error } = await sb.from('posts').select('id, title, status, created_at, content');
+          if (error) console.warn('[게시판] 본문으로 중복 확인 실패:', error.message);
+          (all || []).forEach(p => {
+            if (p.id === editingId || found.has(p.id) || bodyHead(p.content) !== head) return;
+            const sameTitle = !!t && squashTitle(p.title) === t;
+            if (sameTitle || head.length >= BODY_ONLY_MIN) found.set(p.id, { ...p, why: sameTitle ? '제목·본문 같음' : '본문 같음' });
+          });
+        }
+        return [...found.values()];
+      }
+      // 가져온 네이버 글 넣기 (N 버튼·네이버 글 담기 보내기·복사 붙여넣기 공통):
+      // 먼저 같은 원본 주소의 글이 있는지 보고 알림 → '취소하고 비우기'면 넣지 않고 글쓰기 칸을 비움
+      async function importExternalArticle({ html, text = '', range = null, title = '', sourceUrl = null }) {
+        if (sourceUrl) {
+          const dups = await findPostsBySource(sourceUrl);
+          if (dups.length) {
+            const p = dups.find(d => d.status === 'published') || dups[0];
+            const go = await askChoice({
+              title: p.status === 'draft' ? '이 글은 이미 임시저장 글로 저장돼 있습니다.' : '이 글은 이미 홈페이지에 등록돼 있습니다.',
+              message: `(${p.status === 'draft' ? '저장일' : '등록일'}: ${fmtDate(p.created_at)} · ‘${p.title}’)\n그래도 새로 작성하시겠습니까?`,
+              ok: '계속 작성', cancel: '취소하고 비우기', okStyle: 'gold', cancelStyle: 'danger'
+            });
+            if (!go) { openNewForm(); return false; }
+          }
+          formSourceUrl = sourceUrl;
+        }
+        if (title && !fTitle.value.trim()) fTitle.value = title;
+        insertExternalHtml(html, text, range);
+        return true;
+      }
+
       btnDrafts.addEventListener('click', openDrafts);
       document.getElementById('draftsClose').addEventListener('click', closeDrafts);
       draftsModal.addEventListener('click', (e) => { if (e.target === draftsModal) closeDrafts(); });   // 바깥 어두운 곳
@@ -3408,6 +3517,23 @@
         btnSave.disabled = true; btnDraft.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 저장 중...';
         try {
+          // '등록' 직전 중복 글 확인 (같은 원본 주소, 또는 제목 + 본문 앞 300자가 같은 글 / 수정 중인 글 자신은 제외)
+          if (status === 'published') {
+            const dups = await findDuplicatesForPublish(title, content);
+            if (dups.length) {
+              const list = dups.slice(0, 3).map(p => `· ‘${p.title}’ (${postStamp(p)} · ${p.why})`).join('\n');
+              const go = await askChoice({
+                title: '이미 등록된 글일 수 있습니다.',
+                message: `${list}${dups.length > 3 ? `\n· 외 ${dups.length - 3}개` : ''}\n\n그래도 등록하시겠습니까?`,
+                ok: '그래도 등록', cancel: '취소', okStyle: 'gold', cancelStyle: 'text'
+              });
+              if (!go) {
+                btnSave.disabled = false; btnDraft.disabled = false;
+                btnSave.innerHTML = originalSave; btnDraft.innerHTML = originalDraft;
+                return;
+              }
+            }
+          }
           const seo = seoValues();
           const write = (row) => (editingId
             ? sb.from('posts').update(row).eq('id', editingId)
@@ -3417,15 +3543,19 @@
           const row = { title, content, status, ...seo };
           if (category) row.category = category;
           if (hasUpdatedAt) row.updated_at = new Date().toISOString();   // 마지막 저장 시각 (임시저장 글 목록에 표시)
+          if (hasSourceUrl) row.source_url = formSourceUrl;   // 네이버 원본 주소 (복붙으로 쓴 글은 null)
           let { error } = await write(row);
           // Supabase 에 아직 없는 칸이 있으면 그 칸만 빼고 다시 저장:
-          // updated_at(저장일시) 없으면 조용히, seo_title·seo_description 없으면 글은 저장하고 검색 제목·설명만 빼고 안내
+          // updated_at(저장일시)·source_url(원본 주소) 없으면 조용히, seo_title·seo_description 없으면 글은 저장하고 검색 제목·설명만 빼고 안내
           let seoNotSaved = false;
-          for (let retry = 0; retry < 2 && error; retry++) {
+          for (let retry = 0; retry < 3 && error; retry++) {
             const msg = error.message || '';
             if (/updated_at/.test(msg) && 'updated_at' in row) {
               hasUpdatedAt = false;
               delete row.updated_at;
+            } else if (/source_url/.test(msg) && 'source_url' in row) {
+              hasSourceUrl = false;
+              delete row.source_url;
             } else if (/seo_(title|description)/.test(msg) && 'seo_title' in row) {
               console.warn('[게시판] seo_title·seo_description 칸이 없어 검색 제목·설명은 빼고 저장:', msg);
               delete row.seo_title;
@@ -3584,7 +3714,9 @@
           }
           const t = document.createElement('textarea');
           t.innerHTML = a.subject || '';
-          return { title: t.value, html: a.contentHtml };
+          // 원본 주소는 늘 같은 모양으로 (홈페이지가 중복 글을 찾을 때 씀)
+          const src = 'https://cafe.naver.com/ca-fe/cafes/' + (json.result.cafeId || p.cafe) + '/articles/' + (json.result.articleId || p.id);
+          return { title: t.value, html: a.contentHtml, sourceUrl: src };
         }
         // 블로그: 열린 화면(또는 안쪽 글 창)의 본문, 없으면 같은 블로그 주소에서 글을 다시 읽음
         async function readBlog() {
@@ -3613,6 +3745,7 @@
             r = pick(new DOMParser().parseFromString(await res.text(), 'text/html'));
           }
           if (!r) throw new Error('블로그 글 본문을 찾지 못했습니다. 글을 열어 둔 화면에서 눌러 주세요.');
+          r.sourceUrl = blogId && logNo ? 'https://blog.naver.com/' + blogId + '/' + logNo : '';
           return r;
         }
 
@@ -3643,7 +3776,8 @@
           }, 400);
         }
         async function copy(clip, text) {
-          const html = '<h1 data-myry-title="1">' + esc(clip.title) + '</h1>' + clip.html;   // 제목은 홈페이지가 제목 칸으로 옮김
+          // 제목·원본 주소는 홈페이지가 읽어서 제목 칸·중복 확인에 씀 (이 줄 자체는 본문에 안 들어감)
+          const html = '<h1 data-myry-title="1" data-myry-source="' + esc(clip.sourceUrl) + '">' + esc(clip.title) + '</h1>' + clip.html;
           const plain = clip.title + '\n\n' + text;
           let ok = false;
           const onCopy = (e) => {
@@ -3678,7 +3812,7 @@
           const photos = [...d.querySelectorAll('img')].filter((img) =>
             !img.closest('.se-module-oglink, .se-sticker, .se-module-sticker') && /^https?:/.test(img.getAttribute('src') || '')).length;
           const clip = { type: 'myry-naver-clip', id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
-                         title: r.title, html: d.body.innerHTML, source: location.href };
+                         title: r.title, html: d.body.innerHTML, source: location.href, sourceUrl: r.sourceUrl || '' };
           const plain = d.body.cloneNode(true);   // 글자만 붙여넣는 곳을 위한 줄바꿈 살린 글
           plain.querySelectorAll('br').forEach((br) => br.replaceWith('\n'));
           plain.querySelectorAll('p, li, tr, h1, h2, h3, h4').forEach((el) => el.append('\n'));
@@ -3724,11 +3858,12 @@
         try { e.source.postMessage({ type: 'myry-naver-clip-ack', id: d.id }, e.origin); } catch (err) {}
         if (seenClipIds.has(d.id)) return;
         seenClipIds.add(d.id);
-        pendingClip = { id: String(d.id || ''), title: String(d.title || ''), html: d.html };
+        pendingClip = { id: String(d.id || ''), title: String(d.title || ''), html: d.html,
+                        sourceUrl: String(d.sourceUrl || ''), source: String(d.source || '') };   // 원본 주소 (중복 확인용)
         try { sessionStorage.setItem(NAVER_CLIP_KEY, JSON.stringify(pendingClip)); } catch (err) {}
         applyNaverClip();
       });
-      function applyNaverClip() {
+      async function applyNaverClip() {
         if (!authReady) return;
         let clip = pendingClip;
         if (!clip) { try { clip = JSON.parse(sessionStorage.getItem(NAVER_CLIP_KEY) || 'null'); } catch (e) {} }
@@ -3749,8 +3884,9 @@
         pendingClip = null;
         try { sessionStorage.removeItem(NAVER_CLIP_KEY); } catch (e) {}
         if (boardFormEl.style.display !== 'block') openNewForm();   // 쓰던 글이 있으면 그 글 커서 자리에 넣음
-        if (!fTitle.value.trim() && clip.title) fTitle.value = clip.title;
-        insertExternalHtml(clip.html, '', quill.getSelection());
+        // 원본 주소: 새 버튼은 sourceUrl 을 보내고, 예전에 설치한 버튼은 네이버 화면 주소(source)만 보냄
+        await importExternalArticle({ html: clip.html, range: quill.getSelection(), title: clip.title,
+          sourceUrl: canonicalNaverUrl(clip.sourceUrl) || canonicalNaverUrl(clip.source) });
       }
 
       // --- 첫 화면의 메뉴 이동(#services 등)은 게시판 닫기, 예전 #board 주소는 /column 으로 ---
