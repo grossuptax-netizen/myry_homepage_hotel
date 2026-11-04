@@ -729,12 +729,12 @@
     .post-form { background: #fff; border: 1px solid var(--lavender); border-radius: 16px; padding: 40px; box-shadow: 0 8px 26px rgba(61,43,86,0.06); }
     .post-form .field { margin-bottom: 22px; }
     .post-form label { display: block; font-weight: 700; color: var(--plum); margin-bottom: 8px; font-size: 0.95rem; }
-    .post-form input[type="text"], .post-form textarea, .post-form select {
+    .post-form input[type="text"], .post-form input[type="date"], .post-form textarea, .post-form select {
       width: 100%; border: 1.5px solid var(--lavender); border-radius: 10px;
       padding: 14px 16px; font-family: inherit; font-size: 1rem; color: #2C2C2C;
       transition: border-color 0.2s ease; background: #fdfcfb;
     }
-    .post-form input[type="text"]:focus, .post-form textarea:focus, .post-form select:focus { outline: none; border-color: var(--gold); background: #fff; }
+    .post-form input[type="text"]:focus, .post-form input[type="date"]:focus, .post-form textarea:focus, .post-form select:focus { outline: none; border-color: var(--gold); background: #fff; }
     .post-form select { cursor: pointer; }
     .post-form textarea { resize: vertical; min-height: 280px; line-height: 1.8; }
     /* 등록·임시저장·취소 바: 글쓰기 카드 맨 위. 스크롤하면 사이트 메뉴(--header-h) 바로 아래에 붙어 있음.
@@ -1493,6 +1493,11 @@
             </select>
           </div>
           <div class="field">
+            <label for="fPublished">발행일</label>
+            <input type="date" id="fPublished" name="published">
+            <p class="editor-hint"><i class="fas fa-circle-info" aria-hidden="true"></i> 네이버에서 가져온 글은 원본 날짜가 자동으로 들어갑니다. 비워 두면 처음 저장한 날로 올라갑니다.</p>
+          </div>
+          <div class="field">
             <label>내용</label>
             <!-- 링크 카드 만들기: 툴바 버튼을 누르면 툴바 바로 아래에 나타남 -->
             <div class="linkcard-bar" id="linkCardBar" hidden>
@@ -1830,6 +1835,7 @@
       const postForm      = document.getElementById('postForm');
       const fTitle        = document.getElementById('fTitle');
       const fCategory     = document.getElementById('fCategory');
+      const fPublished    = document.getElementById('fPublished');
       const formTitleEl   = document.getElementById('formTitle');
       const btnSave       = document.getElementById('btnSave');
       const btnDraft      = document.getElementById('btnDraft');
@@ -1882,6 +1888,7 @@
       let currentUser = null;      // 로그인 사용자
       let editingId   = null;      // 수정 중인 글 id (null이면 새 글)
       let editingPublished = false;   // 수정 중인 글이 공개(등록)된 글인지 → 임시저장하면 비공개로 바뀌므로 확인
+      let formPublished = null;       // 발행일 칸의 정확한 시각 (네이버 원본·기존 글. 날짜를 안 고치면 시각까지 그대로 저장)
       let formSourceUrl = null;       // 글쓰기 중인 글의 네이버 원본 주소 (N 버튼·네이버 글 담기로 가져왔을 때, 저장 시 posts.source_url)
       let currentPost = null;      // 상세 화면에 표시 중인 글
       let quill       = null;      // Quill 에디터 인스턴스
@@ -2071,7 +2078,7 @@
         closeLinkCardBar();
         // 제목이 비어 있으면 네이버 글 제목으로. 같은 원본 주소의 글이 이미 있으면 먼저 알림
         await importExternalArticle({ html: json.html, range: linkCardRange, title: json.title,
-          sourceUrl: json.sourceUrl || canonicalNaverUrl(url) });
+          sourceUrl: json.sourceUrl || canonicalNaverUrl(url), sourceDate: json.date });
       }
       function closeLinkCardBar() {
         linkCardBar.hidden = true;
@@ -3097,7 +3104,7 @@
       }
       function formSnapshot() {
         // 본문은 편집기 내용(Delta)으로 비교: 링크 카드 썸네일이 안 열려 아이콘으로 바뀌는 것 같은 화면 변화는 변경으로 치지 않음
-        return JSON.stringify([fTitle.value.trim(), fCategory.value,
+        return JSON.stringify([fTitle.value.trim(), fCategory.value, fPublished.value,
           seoManual.title ? fSeoTitle.value.trim() : '', seoManual.desc ? fSeoDesc.value.trim() : '',
           seoFormatted, quill ? quill.getContents().ops : []]);
       }
@@ -3705,6 +3712,7 @@
         editingId = null;
         editingPublished = false;
         formSourceUrl = null;
+        setPublished(null);
         formTitleEl.textContent = '새 글 작성';
         fTitle.value = '';
         fCategory.value = '';
@@ -3729,6 +3737,7 @@
         editingId = currentPost.id;
         editingPublished = currentPost.status === 'published';
         formSourceUrl = currentPost.source_url || null;   // 고쳐 저장해도 원본 주소는 그대로
+        setPublished(currentPost.created_at);
         formTitleEl.textContent = (currentPost.status === 'draft') ? '임시저장 글 이어쓰기' : '글 수정';
         fTitle.value = currentPost.title || '';
         fCategory.value = currentPost.category || '';   // 기존 카테고리 선택 상태로 표시
@@ -3925,9 +3934,35 @@
         }
         return [...found.values()];
       }
+      // 발행일 칸 (posts.created_at): 날짜로 보여 주고, 날짜를 고치지 않으면 원래 시각까지 그대로 저장
+      const localDay = (iso) => fmtDate(iso).replace(/\./g, '-');
+      function setPublished(iso) {
+        formPublished = iso || null;
+        fPublished.value = iso ? localDay(iso) : '';
+      }
+      function publishedIso() {
+        const day = fPublished.value;
+        if (!day) return null;
+        if (formPublished && localDay(formPublished) === day) return formPublished;
+        return new Date(day + 'T09:00:00').toISOString();
+      }
+      // 네이버 글 날짜 → ISO: 카페는 밀리초 숫자, 블로그는 '2026. 8. 7. 16:30' 또는 최근 글의 '23시간 전'·'5분 전'·'방금 전'
+      function naverDateIso(value) {
+        const s = String(value == null ? '' : value).trim();
+        const now = Date.now();
+        const full = s.match(/(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})\.?\s*(?:(\d{1,2}):(\d{2}))?/);
+        const ago = s.match(/(\d+)\s*(분|시간)\s*전/);
+        let t = NaN;
+        if (/^\d{12,}$/.test(s)) t = Number(s);
+        else if (full) t = new Date(+full[1], full[2] - 1, +full[3], +(full[4] || 0), +(full[5] || 0)).getTime();
+        else if (ago) t = now - ago[1] * (ago[2] === '분' ? 60000 : 3600000);
+        else if (/방금/.test(s)) t = now;
+        return t > 0 && t <= now + 86400000 ? new Date(t).toISOString() : null;
+      }
+
       // 가져온 네이버 글 넣기 (N 버튼·네이버 글 담기 보내기·복사 붙여넣기 공통):
       // 먼저 같은 원본 주소의 글이 있는지 보고 알림 → '취소하고 비우기'면 넣지 않고 글쓰기 칸을 비움
-      async function importExternalArticle({ html, text = '', range = null, title = '', sourceUrl = null }) {
+      async function importExternalArticle({ html, text = '', range = null, title = '', sourceUrl = null, sourceDate = null }) {
         if (sourceUrl) {
           const dups = await findPostsBySource(sourceUrl);
           if (dups.length) {
@@ -3942,6 +3977,7 @@
           formSourceUrl = sourceUrl;
         }
         if (title && !fTitle.value.trim()) fTitle.value = title;
+        if (sourceDate && !fPublished.value) setPublished(naverDateIso(sourceDate));   // 네이버에 올라간 날짜
         insertExternalHtml(html, text, range);
         return true;
       }
@@ -4018,6 +4054,8 @@
           // (게시판 표에 '카테고리 필수'가 걸려 있으면 빈 값(null)을 보낼 때 저장이 거절되므로 → 기본값·기존 값 유지)
           const row = { title, content, status, ...seo };
           if (category) row.category = category;
+          const publishedAt = publishedIso();
+          if (publishedAt) row.created_at = publishedAt;   // 발행일 (비어 있으면 새 글은 저장 시각, 기존 글은 그대로)
           if (hasUpdatedAt) row.updated_at = new Date().toISOString();   // 마지막 저장 시각 (임시저장 글 목록에 표시)
           if (hasSourceUrl) row.source_url = formSourceUrl;   // 네이버 원본 주소 (복붙으로 쓴 글은 null)
           if (hasSeoFormatted) row.seo_formatted = seoFormatted;   // SEO 형식 정리 완료 여부
@@ -4201,7 +4239,7 @@
           t.innerHTML = a.subject || '';
           // 원본 주소는 늘 같은 모양으로 (홈페이지가 중복 글을 찾을 때 씀)
           const src = 'https://cafe.naver.com/ca-fe/cafes/' + (json.result.cafeId || p.cafe) + '/articles/' + (json.result.articleId || p.id);
-          return { title: t.value, html: a.contentHtml, sourceUrl: src };
+          return { title: t.value, html: a.contentHtml, sourceUrl: src, date: a.writeDate };
         }
         // 블로그: 열린 화면(또는 안쪽 글 창)의 본문, 없으면 같은 블로그 주소에서 글을 다시 읽음
         async function readBlog() {
@@ -4221,7 +4259,9 @@
             if (!main) return null;
             const te = scope.querySelector('.se-title-text, .se_title .se_textarea, .pcol1, .tit_h3');
             const og = d.querySelector('meta[property="og:title"]');
-            return { title: ((te && te.textContent) || (og && og.content) || '').replace(/\s+/g, ' ').trim(), html: main.outerHTML };
+            const when = scope.querySelector('.se_publishDate, ._postAddDate, .blog_date');
+            return { title: ((te && te.textContent) || (og && og.content) || '').replace(/\s+/g, ' ').trim(), html: main.outerHTML,
+                     date: when ? when.textContent.trim() : '' };
           };
           let r = pick(f && f.contentDocument) || pick(document);
           if (!r && blogId && logNo) {
@@ -4276,7 +4316,7 @@
           const photos = [...d.querySelectorAll('img')].filter((img) =>
             !img.closest('.se-module-oglink, .se-sticker, .se-module-sticker') && /^https?:/.test(img.getAttribute('src') || '')).length;
           const clip = { type: 'myry-naver-clip', id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
-                         title: r.title, html: d.body.innerHTML, source: location.href, sourceUrl: r.sourceUrl || '' };
+                         title: r.title, html: d.body.innerHTML, source: location.href, sourceUrl: r.sourceUrl || '', sourceDate: r.date || '' };
           say('<b>' + esc(r.title || '(제목 없음)') + '</b>사진 ' + photos + '장을 포함해 글을 담았습니다. 보낼 홈페이지를 고르세요.');
           $('.act').hidden = false;
           root.querySelectorAll('.send').forEach((b) => {
@@ -4322,7 +4362,8 @@
         if (seenClipIds.has(d.id)) return;
         seenClipIds.add(d.id);
         pendingClip = { id: String(d.id || ''), title: String(d.title || ''), html: d.html,
-                        sourceUrl: String(d.sourceUrl || ''), source: String(d.source || '') };   // 원본 주소 (중복 확인용)
+                        sourceUrl: String(d.sourceUrl || ''), source: String(d.source || ''),   // 원본 주소 (중복 확인용)
+                        sourceDate: String(d.sourceDate || '') };   // 네이버에 올라간 날짜
         try { sessionStorage.setItem(NAVER_CLIP_KEY, JSON.stringify(pendingClip)); } catch (err) {}
         applyNaverClip();
       });
@@ -4349,7 +4390,7 @@
         if (boardFormEl.style.display !== 'block') openNewForm();   // 쓰던 글이 있으면 그 글 커서 자리에 넣음
         // 원본 주소: 새 버튼은 sourceUrl 을 보내고, 예전에 설치한 버튼은 네이버 화면 주소(source)만 보냄
         await importExternalArticle({ html: clip.html, range: quill.getSelection(), title: clip.title,
-          sourceUrl: canonicalNaverUrl(clip.sourceUrl) || canonicalNaverUrl(clip.source) });
+          sourceUrl: canonicalNaverUrl(clip.sourceUrl) || canonicalNaverUrl(clip.source), sourceDate: clip.sourceDate });
       }
 
       // --- 첫 화면의 메뉴 이동(#services 등)은 게시판 닫기, 예전 #board 주소는 /column 으로 ---

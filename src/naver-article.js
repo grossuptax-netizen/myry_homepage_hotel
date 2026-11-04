@@ -79,7 +79,7 @@ async function fetchCafe(p) {
   }
   // 원본 주소는 늘 같은 모양으로 (중복 글 찾기용): 카페 번호·글 번호
   const sourceUrl = `https://cafe.naver.com/ca-fe/cafes/${json.result.cafeId || p.cafe}/articles/${json.result.articleId || p.articleId}`
-  return { ok: true, source: 'cafe', title: decodeEntities(article.subject), html: article.contentHtml, sourceUrl }
+  return { ok: true, source: 'cafe', title: decodeEntities(article.subject), html: article.contentHtml, sourceUrl, date: article.writeDate }
 }
 
 async function fetchBlog(p) {
@@ -90,10 +90,11 @@ async function fetchBlog(p) {
   const body = sliceBalancedDiv(page, '<div class="se-main-container"')
   if (!body) return { ok: false, error: '블로그 글 본문을 찾지 못했습니다. 비공개 글이거나 예전 편집기로 쓴 글일 수 있어요.' }
   const title = (page.match(/<meta property="og:title" content="([^"]*)"/i) || [])[1] || ''
-  return { ok: true, source: 'blog', title: decodeEntities(title), html: body, sourceUrl: `https://blog.naver.com/${p.blogId}/${p.logNo}` }
+  const date = (page.match(/class="se_publishDate[^"]*"[^>]*>([^<]+)</) || [])[1] || ''
+  return { ok: true, source: 'blog', title: decodeEntities(title), html: body, sourceUrl: `https://blog.naver.com/${p.blogId}/${p.logNo}`, date: date.trim() }
 }
 
-// 주소로 네이버 글 읽기. 성공: { ok, source, title, html, sourceUrl(늘 같은 모양의 원본 주소) }  실패: { ok: false, error }
+// 주소로 네이버 글 읽기. 성공: { ok, source, title, html, sourceUrl(늘 같은 모양의 원본 주소), date(올라간 날짜: 카페 밀리초 숫자, 블로그 화면 글자) }  실패: { ok: false, error }
 export async function fetchNaverArticle(raw) {
   const p = parseNaverUrl(raw)
   if (!p) return { ok: false, error: '네이버 카페·블로그 글 주소가 아닙니다. 글을 연 상태의 주소창 주소를 붙여넣어 주세요.' }
