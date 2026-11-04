@@ -149,4 +149,7 @@ app.get('/api/naver/article', async (c) => {
   return c.json(result, result.ok ? 200 : 400)
 })
 
+// 없는 주소: 안내 화면(404). 빌드 플러그인이 notFound 처리기를 빈 값으로 덮어써 app.notFound 로는 서버 오류(500)가 나므로 맨 끝 전체 경로로 받음
+app.all('*', (c) => c.html(renderNotFound(indexHtml, '페이지를'), 404))
+
 export default app

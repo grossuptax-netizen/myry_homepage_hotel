@@ -260,14 +260,15 @@ export function renderListPage(template, posts) {
   return html
 }
 
-// --- 없는 글 (404) ---
-export function renderNotFound(template) {
-  const title = `글을 찾을 수 없습니다 | ${BRAND}`
+// --- 없는 글·없는 주소 (404) ---
+export function renderNotFound(template, what = '글을') {
+  const title = `${what} 찾을 수 없습니다 | ${BRAND}`
   let html = setHead(template, title, LIST_DESC, '<meta name="robots" content="noindex" />')
   html = boardMode(html)
+  html = swap(html, '<body class="board-mode">', '<body class="board-mode" data-not-found>')   // 화면이 첫 화면으로 바꾸지 않게
   html = swap(html, '<div class="board-loading" id="listLoading">', '<div class="board-loading" id="listLoading" style="display:none">')
   html = swap(html, '<div class="board-empty" id="listEmpty" style="display:none"><i class="far fa-folder-open"></i>아직 등록된 세무 정보가 없습니다.</div>',
-    '<div class="board-empty" id="listEmpty"><i class="far fa-folder-open"></i>요청하신 글을 찾을 수 없습니다. <a href="/column">세무 정보 목록으로</a></div>')
+    `<div class="board-empty" id="listEmpty"><i class="far fa-folder-open"></i>요청하신 ${what} 찾을 수 없습니다. <a href="/">첫 화면으로</a> · <a href="/column">세무 정보 목록으로</a></div>`)
   return html
 }
 

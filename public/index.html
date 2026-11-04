@@ -644,6 +644,7 @@
       text-align: center; padding: 70px 20px; color: #9a8fb0; font-size: 1rem;
     }
     .board-empty i, .board-loading i { font-size: 2.4rem; color: var(--lavender); display: block; margin-bottom: 16px; }
+    .board-empty a { color: var(--gold-dark); text-decoration: underline; }
 
     /* 상세 */
     .post-detail {
@@ -3020,6 +3021,7 @@
           return;
         }
         if (location.hash === '#board') { history.replaceState(null, '', '/column'); goList(false); return; }   // 예전 주소
+        if (document.body.hasAttribute('data-not-found')) return;   // 서버가 보낸 '없는 주소' 안내 화면은 그대로 둠
         leaveBoard();
       }
       window.addEventListener('popstate', async () => {
