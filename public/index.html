@@ -860,6 +860,7 @@
     .post-form .ql-snow .ql-picker.ql-font [data-value="nanummyeongjo"]::before { content: '나눔명조'; font-family: 'Nanum Myeongjo', serif; }
     .post-form .ql-snow .ql-picker.ql-font [data-value="nanumpen"]::before { content: '나눔손글씨'; font-family: 'Nanum Pen Script', cursive; font-size: 1.15em; }
     .editor-hint { margin-top: 8px; font-size: 0.82rem; color: #9a8fb0; }
+    .editor-hint.warn { color: #b3261e; }
     /* 붙여넣기에서 사진을 뺐을 때 안내 */
     .editor-notice {
       display: none; align-items: flex-start; gap: 10px; margin-top: 10px; padding: 12px 14px;
@@ -1495,7 +1496,7 @@
           <div class="field">
             <label for="fPublished">발행일</label>
             <input type="date" id="fPublished" name="published">
-            <p class="editor-hint"><i class="fas fa-circle-info" aria-hidden="true"></i> 네이버에서 가져온 글은 원본 날짜가 자동으로 들어갑니다. 비워 두면 처음 저장한 날로 올라갑니다.</p>
+            <p class="editor-hint" id="publishedHint"><i class="fas fa-circle-info" aria-hidden="true"></i> <span id="publishedNote"></span></p>
           </div>
           <div class="field">
             <label>내용</label>
@@ -1889,6 +1890,7 @@
       let editingId   = null;      // 수정 중인 글 id (null이면 새 글)
       let editingPublished = false;   // 수정 중인 글이 공개(등록)된 글인지 → 임시저장하면 비공개로 바뀌므로 확인
       let formPublished = null;       // 발행일 칸의 정확한 시각 (네이버 원본·기존 글. 날짜를 안 고치면 시각까지 그대로 저장)
+      let publishedAuto = true;       // 발행일을 아직 정하지 않아 오늘 날짜를 보여 주는 중 (네이버 글을 가져오면 원본 날짜로 바뀜)
       let formSourceUrl = null;       // 글쓰기 중인 글의 네이버 원본 주소 (N 버튼·네이버 글 담기로 가져왔을 때, 저장 시 posts.source_url)
       let currentPost = null;      // 상세 화면에 표시 중인 글
       let quill       = null;      // Quill 에디터 인스턴스
@@ -3712,7 +3714,7 @@
         editingId = null;
         editingPublished = false;
         formSourceUrl = null;
-        setPublished(null);
+        setPublishedToday();
         formTitleEl.textContent = '새 글 작성';
         fTitle.value = '';
         fCategory.value = '';
@@ -3737,7 +3739,8 @@
         editingId = currentPost.id;
         editingPublished = currentPost.status === 'published';
         formSourceUrl = currentPost.source_url || null;   // 고쳐 저장해도 원본 주소는 그대로
-        setPublished(currentPost.created_at);
+        if (currentPost.created_at) setPublished(currentPost.created_at, 'saved');
+        else setPublishedToday();
         formTitleEl.textContent = (currentPost.status === 'draft') ? '임시저장 글 이어쓰기' : '글 수정';
         fTitle.value = currentPost.title || '';
         fCategory.value = currentPost.category || '';   // 기존 카테고리 선택 상태로 표시
@@ -3936,13 +3939,37 @@
       }
       // 발행일 칸 (posts.created_at): 날짜로 보여 주고, 날짜를 고치지 않으면 원래 시각까지 그대로 저장
       const localDay = (iso) => fmtDate(iso).replace(/\./g, '-');
-      function setPublished(iso) {
-        formPublished = iso || null;
-        fPublished.value = iso ? localDay(iso) : '';
+      const PUBLISHED_NOTES = {
+        today: '오늘 날짜로 올라갑니다. 날짜를 눌러 바꿀 수 있습니다.',
+        naver: '네이버에 올라간 날짜입니다. 날짜를 눌러 바꿀 수 있습니다.',
+        noNaver: '네이버 날짜를 읽지 못해 오늘 날짜로 표시했습니다. 날짜를 직접 고르거나, 네이버 글 담기 버튼을 새로 담아 주세요.',
+        saved: '저장된 발행일입니다. 날짜를 눌러 바꿀 수 있습니다.',
+        picked: '고른 날짜로 올라갑니다.',
+        empty: '날짜가 비어 있습니다. 새 글은 처음 저장한 날로 올라가고, 저장된 글은 원래 날짜를 유지합니다.'
+      };
+      function showPublishedNote(key) {
+        document.getElementById('publishedNote').textContent = PUBLISHED_NOTES[key];
+        document.getElementById('publishedHint').classList.toggle('warn', key === 'noNaver');
       }
+      function setPublished(iso, note) {
+        formPublished = iso;
+        publishedAuto = false;
+        fPublished.value = localDay(iso);
+        showPublishedNote(note);
+      }
+      function setPublishedToday() {
+        formPublished = null;
+        publishedAuto = true;
+        fPublished.value = localDay(new Date().toISOString());
+        showPublishedNote('today');
+      }
+      fPublished.addEventListener('input', () => {
+        publishedAuto = false;
+        showPublishedNote(fPublished.value ? 'picked' : 'empty');
+      });
       function publishedIso() {
         const day = fPublished.value;
-        if (!day) return null;
+        if (!day || publishedAuto) return null;   // 날짜를 보내지 않음: 새 글은 저장 시각, 기존 글은 그대로
         if (formPublished && localDay(formPublished) === day) return formPublished;
         return new Date(day + 'T09:00:00').toISOString();
       }
@@ -3977,7 +4004,11 @@
           formSourceUrl = sourceUrl;
         }
         if (title && !fTitle.value.trim()) fTitle.value = title;
-        if (sourceDate && !fPublished.value) setPublished(naverDateIso(sourceDate));   // 네이버에 올라간 날짜
+        if (publishedAuto) {   // 네이버에 올라간 날짜 (직접 고른 날짜나 저장된 날짜는 바꾸지 않음)
+          const iso = naverDateIso(sourceDate);
+          if (iso) setPublished(iso, 'naver');
+          else if (sourceUrl) showPublishedNote('noNaver');
+        }
         insertExternalHtml(html, text, range);
         return true;
       }
