@@ -9,7 +9,7 @@ import { cloudinaryConfig, uploadSignature, importImage } from './cloudinary.js'
 // @ts-ignore (일반 JS 모듈)
 import { fetchNaverArticle } from './naver-article.js'
 // @ts-ignore (일반 JS 모듈)
-import { getPost, listPosts, postPath, postIdFromSlug, renderPostPage, renderListPage, renderNotFound, renderSitemap, ROBOTS_TXT } from './column.js'
+import { getPost, listPosts, listPostsPage, postPath, postIdFromSlug, categoryBySlug, listUrl, PAGE_SIZE, renderPostPage, renderListPage, renderNotFound, renderSitemap, ROBOTS_TXT } from './column.js'
 
 // 게시판(Supabase) 정보: public/index.html 과 같은 값 (공개용 키)
 const SUPABASE_URL = 'https://kbkmlwtldpuwssooikcm.supabase.co'
@@ -70,17 +70,32 @@ const safeDecode = (s: string) => { try { return decodeURIComponent(s) } catch (
 // 검색엔진이 SEO 태그 없는 페이지를 담아 가지 않도록 '잠시 오류(503), 나중에 다시'로 알림
 const dbDownPage = (c: Context) => c.html(indexHtml, 503, { 'Retry-After': '120' })
 
-// 목록
+// 목록: 12개씩. /column?cat=labor(분류)&page=2(페이지)
 app.get('/column', async (c) => {
+  const catSlug = c.req.query('cat')
+  const pageRaw = c.req.query('page')
+  const cat = catSlug ? categoryBySlug(catSlug) : null
+  const category = cat ? cat.name : null
+  const page = /^\d+$/.test(pageRaw || '') ? Number(pageRaw) : 1
+  // 모르는 분류·잘못된 번호·굳이 적은 1페이지는 정식 주소로 (같은 목록이 여러 주소로 잡히지 않게)
+  if ((catSlug !== undefined && !cat) || (pageRaw !== undefined && !(page > 1))) {
+    return c.redirect(listUrl(category, 1), 301)
+  }
   try {
-    return c.html(renderListPage(indexHtml, await listPosts(db)))
+    const { posts, total } = await listPostsPage(db, category, page)
+    if (page > 1 && page > Math.ceil(total / PAGE_SIZE)) return c.html(renderNotFound(indexHtml, '페이지를'), 404)
+    return c.html(renderListPage(indexHtml, { posts, total, category, page }))
   } catch (e) {
     console.error('[column] 목록 실패', e)
     return dbDownPage(c)
   }
 })
 app.get('/column/', (c) => c.redirect('/column', 301))
-app.get('/column/:category', (c) => c.redirect('/column', 301))
+// /column/vat 처럼 분류만 적은 주소는 그 분류 목록으로
+app.get('/column/:category', (c) => {
+  const cat = categoryBySlug(c.req.param('category'))
+  return c.redirect(listUrl(cat ? cat.name : null, 1), 301)
+})
 
 // 글 한 편: /column/{분류}/{번호}-{제목}
 app.get('/column/:category/:slug', async (c) => {

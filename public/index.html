@@ -599,6 +599,13 @@
       box-shadow: 0 6px 14px rgba(0,0,0,0.25);
     }
     .cat-btn.active i { color: #fff; }
+    /* 카테고리별 글 수 (목록을 불러오면 채움) */
+    .cat-count {
+      min-width: 22px; padding: 0 7px; border-radius: 999px; background: rgba(255,255,255,0.14);
+      font-size: 0.78em; font-weight: 700; line-height: 1.7; text-align: center;
+    }
+    .cat-count:empty { display: none; }
+    .cat-btn.active .cat-count { background: rgba(255,255,255,0.25); }
 
     /* 카테고리 배지 */
     .cat-badge {
@@ -655,6 +662,24 @@
       font-size: 0.72rem; font-weight: 700; line-height: 18px; white-space: nowrap; background: #f0edf3; color: #8f84a3;
     }
     .card-seo.is-done { background: #eaf6e4; color: #2f6b22; }
+    /* 카드 위쪽 배지 줄: 카테고리 + (운영자) 임시저장. 제목이 길어 잘려도 임시저장이 보이게 제목 밖에 둠 */
+    .card-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .card-badges .draft-badge { margin-left: 0; }
+    /* 다른 페이지 글을 받는 동안 지금 카드는 흐리게 */
+    .post-list.is-loading { opacity: 0.45; pointer-events: none; transition: opacity 0.2s; }
+
+    /* 목록 페이지 번호 (‹ 이전 1 2 3 … 8 다음 ›) */
+    .pager { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 40px; }
+    .pager[hidden] { display: none; }
+    .pager a, .pager span {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 40px; height: 40px; padding: 0 12px;
+      border-radius: 10px; font-size: 0.92rem; font-weight: 600; text-decoration: none;
+    }
+    .pager a { background: #fff; border: 1px solid var(--lavender); color: var(--plum); transition: all 0.2s ease; }
+    .pager a:hover { border-color: var(--gold); color: var(--gold-dark); }
+    .pager .is-current { background: var(--plum); border: 1px solid var(--plum); color: #fff; }
+    .pager .is-gap { min-width: 20px; padding: 0; color: #9a8fb0; }
+    .pager .is-off { background: #fff; border: 1px solid var(--lavender); color: #c9c1d6; }
 
     .board-empty, .board-loading {
       text-align: center; padding: 70px 20px; color: #9a8fb0; font-size: 1rem;
@@ -1119,6 +1144,9 @@
       .cat-filter::-webkit-scrollbar { display: none; }
       .cat-btn { font-size: 0.86rem; padding: 8px 15px; }
       .post-list { gap: 16px; }
+      .pager { gap: 4px; margin-top: 30px; }
+      .pager a, .pager span { min-width: 34px; height: 36px; padding: 0 8px; font-size: 0.86rem; }
+      .pager .pager-label { display: none; }   /* 휴대폰: 이전·다음은 화살표만 */
       .post-form .ql-editor td, .post-detail .post-body td { padding: 8px 6px; font-size: 0.86rem; }
       .post-form .ql-editor blockquote, .post-detail .post-body blockquote { padding-left: 18px; padding-right: 18px; }
       .link-card-thumb { flex-basis: 84px; }
@@ -1464,6 +1492,7 @@
         <div class="board-loading" id="listLoading"><i class="fas fa-spinner fa-spin"></i>불러오는 중...</div>
         <ul class="post-list" id="postList" style="display:none"></ul>
         <div class="board-empty" id="listEmpty" style="display:none"><i class="far fa-folder-open"></i>아직 등록된 세무 정보가 없습니다.</div>
+        <nav class="pager" id="pager" aria-label="목록 페이지" hidden></nav>
       </div>
 
       <!-- 뷰 2: 상세 -->
@@ -1844,6 +1873,7 @@
       const postListEl    = document.getElementById('postList');
       const listEmpty     = document.getElementById('listEmpty');
       const catFilterEl   = document.getElementById('catFilter');
+      const pagerEl       = document.getElementById('pager');
 
       const detailTitle   = document.getElementById('detailTitle');
       const detailMeta    = document.getElementById('detailMeta');
@@ -1908,6 +1938,56 @@
         return m ? m[1] : null;
       }
 
+      // --- 목록 주소·페이지 (서버 src/column.js 의 PAGE_SIZE·listUrl·listTitle·pagerItems·pagerHtml 과 같게 유지) ---
+      // /column = 전체 1페이지, /column?cat=labor&page=2 = 인건비·노무 2페이지
+      const PAGE_SIZE = 12;
+      function listUrl(category = currentCategory, page = currentPage) {
+        const q = new URLSearchParams();
+        if (category) q.set('cat', catInfo(category).slug);
+        if (page > 1) q.set('page', String(page));
+        const s = q.toString();
+        return '/column' + (s ? '?' + s : '');
+      }
+      const listTitle = (category = currentCategory, page = currentPage) =>
+        `${category ? category + ' · ' : ''}세무 정보${page > 1 ? ` ${page}페이지` : ''} | 명륜세무회계`;
+      // 주소의 ?cat=·?page= 읽기 (모르는 분류·잘못된 번호는 전체·1페이지)
+      function readListState() {
+        const q = new URLSearchParams(location.search);
+        const c = CATEGORIES.find(x => x.slug === q.get('cat'));
+        const n = Number(q.get('page'));
+        currentCategory = c ? c.name : null;
+        currentPage = Number.isInteger(n) && n > 1 ? n : 1;
+      }
+      // 보여 줄 페이지 번호: 7쪽까지는 모두, 넘으면 1 … 앞뒤 … 끝 (빠진 번호가 하나뿐이면 … 대신 그 번호)
+      function pagerItems(cur, last) {
+        if (last <= 7) return Array.from({ length: last }, (_, i) => i + 1);
+        const keep = new Set([1, last, cur - 1, cur, cur + 1]);
+        if (cur <= 4) [2, 3, 4, 5].forEach(n => keep.add(n));
+        if (cur >= last - 3) [last - 4, last - 3, last - 2, last - 1].forEach(n => keep.add(n));
+        const nums = [...keep].filter(n => n >= 1 && n <= last).sort((a, b) => a - b);
+        const out = [];
+        nums.forEach((n, i) => {
+          const prev = nums[i - 1];
+          if (prev && n - prev === 2) out.push(prev + 1);
+          else if (prev && n - prev > 2) out.push('…');
+          out.push(n);
+        });
+        return out;
+      }
+      // ‹ 이전 1 2 3 … 8 다음 › (한 페이지뿐이면 빈 글자). 번호는 진짜 주소 링크라 검색엔진도 따라감
+      function pagerHtml(total, page, category) {
+        const last = Math.ceil(total / PAGE_SIZE);
+        if (last <= 1) return '';
+        const link = (n, inner, cls, label) =>
+          `<a href="${escapeHtml(listUrl(category, n))}" data-page="${n}"${cls ? ` class="${cls}"` : ''} aria-label="${label}">${inner}</a>`;
+        const prev = '<i class="fas fa-chevron-left" aria-hidden="true"></i><span class="pager-label">이전</span>';
+        const next = '<span class="pager-label">다음</span><i class="fas fa-chevron-right" aria-hidden="true"></i>';
+        return (page > 1 ? link(page - 1, prev, 'pager-prev', '이전 페이지') : `<span class="pager-prev is-off" aria-hidden="true">${prev}</span>`) +
+          pagerItems(page, last).map(n => n === '…' ? '<span class="is-gap" aria-hidden="true">…</span>'
+            : n === page ? `<span class="is-current" aria-current="page">${n}</span>` : link(n, String(n), '', `${n}페이지`)).join('') +
+          (page < last ? link(page + 1, next, 'pager-next', '다음 페이지') : `<span class="pager-next is-off" aria-hidden="true">${next}</span>`);
+      }
+
       let currentUser = null;      // 로그인 사용자
       let editingId   = null;      // 수정 중인 글 id (null이면 새 글)
       let editingPublished = false;   // 수정 중인 글이 공개(등록)된 글인지 → 임시저장하면 비공개로 바뀌므로 확인
@@ -1916,8 +1996,11 @@
       let formSourceUrl = null;       // 글쓰기 중인 글의 네이버 원본 주소 (N 버튼·네이버 글 담기로 가져왔을 때, 저장 시 posts.source_url)
       let currentPost = null;      // 상세 화면에 표시 중인 글
       let quill       = null;      // Quill 에디터 인스턴스
-      let allPosts    = [];        // 불러온 전체 글 (필터는 이 목록에서 거름)
+      let allPosts    = [];        // 불러온 전체 글 목록 (제목·분류·날짜만. 분류·페이지는 이 목록에서 거름)
+      const postFull  = new Map(); // 글 번호 → 본문까지 받은 글 (보이는 페이지 카드의 대표 사진·미리보기용)
+      let listLoaded  = false;     // 목록을 한 번이라도 불러왔는지
       let currentCategory = null;  // 선택된 카테고리 (null 이면 전체보기)
+      let currentPage = 1;         // 목록 페이지 번호
 
       const isAdmin = () =>
         !!currentUser && (currentUser.email || '').toLowerCase() === ADMIN_EMAIL.toLowerCase();
@@ -2958,7 +3041,8 @@
       // 검색 제목: seo_title, 없으면 글 제목 / 검색 설명: seo_description, 없으면 본문 앞 약 150자(사진·빈 줄 건너뜀)
       const SITE_URL = 'https://myhoteltax.com';
       const SEO_DESC_LEN = 150;
-      const clipText = (s, n) => (s.length > n ? s.slice(0, n - 1).trim() + '…' : s);
+      // 자른 끝에 이모지 반쪽이 남으면 깨진 글자(�)가 되므로 뺌 (서버 src/column.js 의 clip 과 같게 유지)
+      const clipText = (s, n) => (s.length > n ? s.slice(0, n - 1).replace(/[\uD800-\uDBFF]$/, '').trim() + '…' : s);
       const autoDescription = (html) => clipText(htmlToText(html || ''), SEO_DESC_LEN);
       function postSeo(post) {
         const title = String(post.title || '').trim();
@@ -2998,7 +3082,6 @@
       // --- 게시판 모드 진입/이탈 ---
       const HOME_TITLE = '명륜세무회계 | 호텔·숙박업 전문 세무사 사무실';
       const HOME_DESC = '명륜세무회계 - 호텔, 모텔, 펜션 등 숙박업 전문 세무 기장, 종합소득세·부가가치세 신고, 절세 컨설팅 전문 세무사 사무실';
-      const LIST_TITLE = '세무 정보 | 명륜세무회계';
       const LIST_DESC = '호텔·숙박업 사장님을 위한 세무 소식과 절세 정보를 전해드립니다. 창업·사업자등록, 부가가치세, 인건비·노무, 정부지원금, 세법개정 소식까지.';
       function enterBoard() {
         document.body.classList.add('board-mode');
@@ -3011,11 +3094,25 @@
       }
 
       // --- 주소 라우팅: /column = 목록, /column/{분류}/{번호}-{제목} = 글 (서버가 같은 주소로 검색엔진용 HTML 을 줌) ---
+      // 목록 화면으로: 지금 고른 분류·페이지(currentCategory·currentPage)의 주소로
       function goList(push = true) {
-        if (push && location.pathname !== '/column') history.pushState(null, '', '/column');
-        setPageMeta({ title: LIST_TITLE, desc: LIST_DESC, url: SITE_URL + '/column', type: 'website' });
+        const url = listUrl();
+        if (push && location.pathname + location.search !== url) history.pushState(null, '', url);
+        setListMeta();
+        syncCatFilter();
         enterBoard();
         showList();
+      }
+      // 목록 안에서 분류·페이지 바꾸기: 주소를 남기고(뒤로 가기로 돌아옴) 글 목록은 다시 받지 않고 그리기
+      function showListPage(push = true) {
+        const url = listUrl();
+        if (push && location.pathname + location.search !== url) history.pushState(null, '', url);
+        setListMeta();
+        syncCatFilter();
+        renderPosts();
+      }
+      function setListMeta() {
+        setPageMeta({ title: listTitle(), desc: LIST_DESC, url: SITE_URL + listUrl(), type: 'website' });
       }
       function goPost(post, push = true) {
         const path = postPath(post);
@@ -3040,7 +3137,13 @@
       }
       async function routeFromLocation() {
         const path = location.pathname.replace(/\/+$/, '') || '/';
-        if (path === '/column') { goList(false); return; }
+        if (path === '/column') {
+          readListState();
+          // 목록을 보던 중 뒤로·앞으로 가기(다른 페이지·분류)면 다시 받지 않고 그리기만
+          if (listLoaded && document.body.classList.contains('board-mode') && boardListEl.style.display === 'block') showListPage(false);
+          else goList(false);
+          return;
+        }
         const m = path.match(/^\/column\/[^/]+\/([^/]+)$/);
         if (m) {
           const id = postIdFromSlug(m[1]);
@@ -3048,7 +3151,7 @@
           let post = ssr && String(ssr.id) === id ? ssr : null;   // 서버가 미리 넣어 준 글
           if (!post && id) post = await fetchPostById(id);
           if (post) goPost(post, false);
-          else { history.replaceState(null, '', '/column'); goList(false); }
+          else { history.replaceState(null, '', listUrl()); goList(false); }
           return;
         }
         if (location.hash === '#board') { history.replaceState(null, '', '/column'); goList(false); return; }   // 예전 주소
@@ -3073,7 +3176,7 @@
         const a = e.target.closest('a[href="/column"]');
         if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         e.preventDefault();
-        if (await confirmLeaveForm()) goList(true);
+        if (await confirmLeaveForm()) { currentCategory = null; currentPage = 1; goList(true); }   // 메뉴는 늘 전체 1페이지
       });
 
       // --- 내부 뷰 전환 (목록/상세/작성) ---
@@ -3270,11 +3373,11 @@
           b.type = 'button';
           b.className = 'cat-btn';
           b.dataset.cat = name || '';
-          b.innerHTML = `<i class="fas ${icon}" aria-hidden="true"></i>${escapeHtml(name || '전체보기')}`;
+          b.innerHTML = `<i class="fas ${icon}" aria-hidden="true"></i>${escapeHtml(name || '전체보기')}<span class="cat-count"></span>`;
           b.addEventListener('click', () => {
             currentCategory = name;
-            syncCatFilter();
-            renderPosts();
+            currentPage = 1;
+            showListPage();
           });
           catFilterEl.appendChild(b);
         });
@@ -3288,17 +3391,23 @@
         });
       }
 
-      // --- 목록 로드 ---
+      // --- 목록 로드: 전체 글의 제목·분류·날짜만 받고(개수·페이지 계산용), 본문은 보이는 페이지 글만 받음 ---
+      let quietRender = false;   // 서버가 그려 보낸 첫 카드를 흐리게 하지 않고 바꿔 끼우기
       async function loadPosts() {
-        listLoading.style.display = 'block';
-        postListEl.style.display = 'none';
-        listEmpty.style.display = 'none';
-        postListEl.innerHTML = '';
+        // 서버가 그려 보낸 첫 화면 카드는 새 목록이 준비될 때까지 그대로 둠 (깜빡임 없이)
+        const keepShown = !listLoaded && postListEl.style.display === 'grid' && postListEl.children.length > 0;
+        if (!keepShown) {
+          listLoading.style.display = 'block';
+          postListEl.style.display = 'none';
+          listEmpty.style.display = 'none';
+          pagerEl.hidden = true;
+          postListEl.innerHTML = '';
+        }
         try {
           // 일반 방문자: published 만 / 운영자: 전체(draft 포함)
           let query = sb
             .from('posts')
-            .select('*')   // id·title·content·created_at·status·category (+ seo_title·seo_description 칸이 있으면 함께)
+            .select('id, title, category, created_at, status')
             .order('created_at', { ascending: false });
           if (!isAdmin()) query = query.eq('status', 'published');
 
@@ -3307,40 +3416,103 @@
           if (error && (error.code === '42703' || /status|category/.test(error.message || ''))) {
             console.warn('[게시판] status/category 컬럼 미존재 → 폴백 조회. Supabase posts 테이블에 컬럼을 추가해 주세요.');
             const fb = await sb.from('posts')
-              .select('id, title, content, created_at')
+              .select('id, title, created_at')
               .order('created_at', { ascending: false });
             data = fb.data; error = fb.error;
           }
           if (error) throw error;
-          listLoading.style.display = 'none';
           allPosts = data || [];
-          renderPosts();
+          postFull.clear();
+          listLoaded = true;
+          quietRender = keepShown;
+          await renderPosts();
         } catch (err) {
-          console.error('[게시판] 목록 로드 실패:', err);
-          listLoading.style.display = 'none';
-          listEmpty.style.display = 'block';
-          listEmpty.innerHTML = '<i class="fas fa-triangle-exclamation"></i>목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.';
+          showListError(err);
         }
       }
-
-      // --- 선택된 카테고리로 걸러서 카드 그리기 ---
-      function renderPosts() {
+      function showListError(err) {
+        console.error('[게시판] 목록 로드 실패:', err);
+        listLoading.style.display = 'none';
+        postListEl.style.display = 'none';
+        postListEl.classList.remove('is-loading');
         postListEl.innerHTML = '';
+        pagerEl.hidden = true;
+        listEmpty.style.display = 'block';
+        listEmpty.innerHTML = '<i class="fas fa-triangle-exclamation"></i>목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.';
+      }
+
+      // --- 선택된 카테고리·페이지의 카드 그리기 (12개씩) + 카테고리별 글 수 + 페이지 번호 ---
+      let renderSeq = 0;
+      async function renderPosts() {
+        if (!listLoaded) return;   // 목록을 받으면 loadPosts 가 그림
+        const seq = ++renderSeq;
+        const quiet = quietRender;
+        quietRender = false;
+        updateCatCounts();
         const list = currentCategory
           ? allPosts.filter(p => p.category === currentCategory)
           : allPosts;
         if (list.length === 0) {
+          listLoading.style.display = 'none';
           postListEl.style.display = 'none';
+          postListEl.classList.remove('is-loading');
+          postListEl.innerHTML = '';
+          pagerEl.hidden = true;
           listEmpty.style.display = 'block';
           listEmpty.innerHTML = '<i class="far fa-folder-open"></i>' + (currentCategory
             ? `‘${escapeHtml(currentCategory)}’ 카테고리에 등록된 글이 아직 없습니다.`
             : '아직 등록된 세무 정보가 없습니다.');
           return;
         }
+        // 글이 줄어 없는 페이지가 됐으면(삭제·잘못된 주소) 마지막 페이지로
+        const last = Math.ceil(list.length / PAGE_SIZE);
+        if (currentPage > last) {
+          currentPage = last;
+          if (location.pathname === '/column') { history.replaceState(null, '', listUrl()); setListMeta(); }
+        }
+        const items = list.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+        // 이 페이지 글의 본문(대표 사진·미리보기)을 아직 안 받았으면 받기
+        const need = items.filter(p => !postFull.has(p.id)).map(p => p.id);
+        if (need.length) {
+          if (quiet) { /* 서버가 그려 준 같은 카드가 보이는 중 */ }
+          else if (postListEl.style.display === 'grid' && postListEl.children.length) postListEl.classList.add('is-loading');
+          else { listLoading.style.display = 'block'; listEmpty.style.display = 'none'; }
+          try {
+            const { data, error } = await sb.from('posts').select('*').in('id', need);
+            if (error) throw error;
+            (data || []).forEach(p => postFull.set(p.id, p));
+          } catch (err) {
+            if (seq === renderSeq) showListError(err);
+            return;
+          }
+          if (seq !== renderSeq) return;   // 그사이 다른 페이지·분류를 눌렀으면 그쪽이 그림
+        }
+        listLoading.style.display = 'none';
         listEmpty.style.display = 'none';
+        postListEl.classList.remove('is-loading');
+        postListEl.innerHTML = '';
         postListEl.style.display = 'grid';
-        list.forEach(post => postListEl.appendChild(buildPostCard(post)));
+        items.forEach(p => postListEl.appendChild(buildPostCard(postFull.get(p.id) || p)));
+        pagerEl.innerHTML = pagerHtml(list.length, currentPage, currentCategory);
+        pagerEl.hidden = !pagerEl.innerHTML;
       }
+      // 카테고리 버튼 옆 글 수 (방문자는 등록된 글, 운영자는 임시저장 포함 — 목록에 보이는 글과 같게)
+      function updateCatCounts() {
+        catFilterEl.querySelectorAll('.cat-btn').forEach(b => {
+          const name = b.dataset.cat;
+          b.querySelector('.cat-count').textContent = String(name ? allPosts.filter(p => p.category === name).length : allPosts.length);
+        });
+      }
+      // 페이지 번호 누르기: 새로고침 없이 그 페이지로 (목록을 아직 못 받았으면 보통 링크처럼 이동)
+      pagerEl.addEventListener('click', (e) => {
+        const a = e.target.closest('a[data-page]');
+        if (!a || !listLoaded || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        e.preventDefault();
+        currentPage = Number(a.dataset.page);
+        showListPage();
+        // 새 페이지 첫 카드가 보이게 (위쪽 메뉴 막대에 가리지 않을 만큼 띄워서)
+        window.scrollTo({ top: Math.max(0, catFilterEl.getBoundingClientRect().top + window.scrollY - 100) });
+      });
 
       // --- 카드 1장: 대표 이미지 + 카테고리 배지 + 제목 + 작성일 + 내용 미리보기 ---
       function buildPostCard(post) {
@@ -3359,8 +3531,8 @@
         li.innerHTML = `<a class="post-card-link" href="${escapeHtml(postPath(post))}">
           <div class="post-thumb">${thumb ? `<img src="${escapeHtml(thumb)}" alt="${escapeHtml(post.title)}" loading="lazy" />` : ''}</div>
           <div class="post-card-body">
-            ${catBadge}
-            <h3>${escapeHtml(post.title)}${draftBadge}</h3>
+            ${catBadge || draftBadge ? `<div class="card-badges">${catBadge}${draftBadge}</div>` : ''}
+            <h3>${escapeHtml(post.title)}</h3>
             <div class="post-meta"><i class="far fa-calendar"></i> ${fmtDate(post.created_at)}${seoBadge}</div>
             <p class="post-excerpt">${escapeHtml(excerpt) || '<em>(내용 없음)</em>'}</p>
           </div></a>`;
@@ -4144,6 +4316,7 @@
           markFormClean();   // 저장했으므로 나가기 경고 없음
           btnSave.disabled = false; btnDraft.disabled = false;
           btnSave.innerHTML = originalSave; btnDraft.innerHTML = originalDraft;
+          if (!editingId) currentPage = 1;   // 새 글은 목록 첫 페이지로 (수정한 글은 보던 페이지로)
           editingId = null;
           if (seoNotSaved) {
             alert('글은 저장했지만, 직접 고친 검색 제목·설명은 저장하지 못했습니다.\n' +
@@ -4198,7 +4371,7 @@
           // 해시(#board)는 Supabase 토큰 전용으로 비워두고, 돌아올 위치는 쿼리스트링(?view=board)으로 지정.
           // (해시에 #board를 넣으면 Supabase가 붙이는 #access_token 과 충돌해 세션을 못 읽음)
           // 돌아오는 주소는 Supabase 에 등록된 첫 화면(/)으로 두고, 보던 게시판 주소는 따로 기억했다가 복귀
-          try { sessionStorage.setItem('boardReturnPath', location.pathname.startsWith('/column') ? location.pathname : '/'); } catch (e) {}
+          try { sessionStorage.setItem('boardReturnPath', location.pathname.startsWith('/column') ? location.pathname + location.search : '/'); } catch (e) {}
           const redirectTo = window.location.origin + '/?view=board';
           const { error } = await sb.auth.signInWithOAuth({
             provider: 'google',

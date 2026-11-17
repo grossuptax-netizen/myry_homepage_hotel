@@ -5,7 +5,6 @@
 export const SITE_URL = 'https://myhoteltax.com'
 export const BRAND = '명륜세무회계'
 const DEFAULT_IMAGE = SITE_URL + '/assets/logo.png'
-const LIST_TITLE = `세무 정보 | ${BRAND}`
 const LIST_DESC = '호텔·숙박업 사장님을 위한 세무 소식과 절세 정보를 전해드립니다. 창업·사업자등록, 부가가치세, 인건비·노무, 정부지원금, 세법개정 소식까지.'
 
 // 카테고리 (public/index.html 의 CATEGORIES 와 같게 유지): 이름 → 주소용 영문, 카드 표시용 영문·아이콘
@@ -19,6 +18,7 @@ export const CATEGORIES = [
 const catInfo = (name) =>
   CATEGORIES.find(c => c.name === name) || { name: name || '세무 정보', slug: 'general', en: 'TAX INSIGHT', icon: 'fa-file-lines' }
 export const categorySlug = (name) => catInfo(name).slug
+export const categoryBySlug = (slug) => CATEGORIES.find(c => c.slug === slug) || null
 
 // 제목 → 주소용 글자 (한글·영문·숫자만 남기고 나머지는 '-')
 export function slugify(title) {
@@ -44,17 +44,26 @@ export function postIdFromSlug(slug) {
 const POST_FIELDS = '*'
 // 잠깐의 네트워크 오류·지연에 SEO 태그 없는 페이지가 나가지 않도록 8초 안에 못 받으면 한 번 더
 const DB_TIMEOUT_MS = 8000
-async function readPosts(db, query) {
+// withCount: 전체 개수도 함께 → { rows, total }
+async function readPosts(db, query, withCount = false) {
   let lastError
   for (let attempt = 1; attempt <= 2; attempt++) {
     const ctrl = new AbortController()
     const timer = setTimeout(() => ctrl.abort(), DB_TIMEOUT_MS)
     try {
       const res = await fetch(`${db.url}/rest/v1/posts?${query}`, {
-        headers: { apikey: db.key, Accept: 'application/json' }, signal: ctrl.signal
+        headers: { apikey: db.key, Accept: 'application/json', ...(withCount ? { Prefer: 'count=exact' } : {}) }, signal: ctrl.signal
       })
+      if (!withCount) {
+        if (!res.ok) throw new Error('posts ' + res.status)
+        return await res.json()
+      }
+      // 전체 개수는 Content-Range(예: 0-11/87)의 / 뒤. 글 수보다 뒤 페이지(416, */87)면 글 없이 개수만
+      const total = Number((res.headers.get('Content-Range') || '').split('/')[1])
+      if (res.status === 416 && Number.isFinite(total)) return { rows: [], total }
       if (!res.ok) throw new Error('posts ' + res.status)
-      return await res.json()
+      const rows = await res.json()
+      return { rows, total: Number.isFinite(total) ? total : rows.length }
     } catch (e) {
       lastError = e
     } finally {
@@ -71,6 +80,54 @@ export async function getPost(db, id) {
 export async function listPosts(db, withContent = true) {
   const fields = withContent ? POST_FIELDS : 'id,title,created_at,category'
   return readPosts(db, `select=${fields}&status=eq.published&order=created_at.desc&limit=500`)
+}
+// 목록 한 페이지: 등록된 글 중 그 분류(없으면 전체)·페이지의 글 12개와 전체 개수 → { posts, total }
+export async function listPostsPage(db, category, page) {
+  const filter = category ? `&category=eq.${encodeURIComponent(category)}` : ''
+  const { rows, total } = await readPosts(db,
+    `select=${POST_FIELDS}&status=eq.published${filter}&order=created_at.desc&limit=${PAGE_SIZE}&offset=${(page - 1) * PAGE_SIZE}`, true)
+  return { posts: rows, total }
+}
+
+// --- 목록 주소·페이지 나누기 (public/index.html 의 PAGE_SIZE·listUrl·listTitle·pagerItems·pagerHtml 과 같게 유지) ---
+// /column = 전체 1페이지, /column?cat=labor&page=2 = 인건비·노무 2페이지
+export const PAGE_SIZE = 12
+export function listUrl(category, page) {
+  const q = []
+  if (category) q.push('cat=' + categorySlug(category))
+  if (page > 1) q.push('page=' + page)
+  return '/column' + (q.length ? '?' + q.join('&') : '')
+}
+const listTitle = (category, page) =>
+  `${category ? category + ' · ' : ''}세무 정보${page > 1 ? ` ${page}페이지` : ''} | ${BRAND}`
+// 보여 줄 페이지 번호: 7쪽까지는 모두, 넘으면 1 … 앞뒤 … 끝 (빠진 번호가 하나뿐이면 … 대신 그 번호)
+function pagerItems(cur, last) {
+  if (last <= 7) return Array.from({ length: last }, (_, i) => i + 1)
+  const keep = new Set([1, last, cur - 1, cur, cur + 1])
+  if (cur <= 4) [2, 3, 4, 5].forEach(n => keep.add(n))
+  if (cur >= last - 3) [last - 4, last - 3, last - 2, last - 1].forEach(n => keep.add(n))
+  const nums = [...keep].filter(n => n >= 1 && n <= last).sort((a, b) => a - b)
+  const out = []
+  nums.forEach((n, i) => {
+    const prev = nums[i - 1]
+    if (prev && n - prev === 2) out.push(prev + 1)
+    else if (prev && n - prev > 2) out.push('…')
+    out.push(n)
+  })
+  return out
+}
+// ‹ 이전 1 2 3 … 8 다음 › (한 페이지뿐이면 빈 글자). 번호는 진짜 주소 링크라 검색엔진도 따라감
+function pagerHtml(total, page, category) {
+  const last = Math.ceil(total / PAGE_SIZE)
+  if (last <= 1) return ''
+  const link = (n, inner, cls, label) =>
+    `<a href="${escapeHtml(listUrl(category, n))}" data-page="${n}"${cls ? ` class="${cls}"` : ''} aria-label="${label}">${inner}</a>`
+  const prev = '<i class="fas fa-chevron-left" aria-hidden="true"></i><span class="pager-label">이전</span>'
+  const next = '<span class="pager-label">다음</span><i class="fas fa-chevron-right" aria-hidden="true"></i>'
+  return (page > 1 ? link(page - 1, prev, 'pager-prev', '이전 페이지') : `<span class="pager-prev is-off" aria-hidden="true">${prev}</span>`) +
+    pagerItems(page, last).map(n => n === '…' ? '<span class="is-gap" aria-hidden="true">…</span>'
+      : n === page ? `<span class="is-current" aria-current="page">${n}</span>` : link(n, String(n), '', `${n}페이지`)).join('') +
+    (page < last ? link(page + 1, next, 'pager-next', '다음 페이지') : `<span class="pager-next is-off" aria-hidden="true">${next}</span>`)
 }
 
 // --- 글자 처리 ---
@@ -102,7 +159,8 @@ export function htmlToText(html) {
     .replace(/[​-‍⁠﻿]/g, '')   // 네이버 글에 섞인 보이지 않는 글자
     .replace(/\s+/g, ' ').trim()
 }
-const clip = (s, n) => (s.length > n ? s.slice(0, n - 1).trim() + '…' : s)
+// 자른 끝에 이모지 반쪽이 남으면 깨진 글자(�)가 되므로 뺌 (public/index.html 의 clipText 와 같게 유지)
+const clip = (s, n) => (s.length > n ? s.slice(0, n - 1).replace(/[\uD800-\uDBFF]$/, '').trim() + '…' : s)
 // 검색 제목·설명: 글쓰기에서 직접 넣은 값(seo_title·seo_description), 없으면 글 제목 / 본문 앞 약 150자(사진·빈 줄 건너뜀)
 // (public/index.html 의 postSeo 와 같게 유지)
 export const SEO_DESC_LEN = 150
@@ -244,11 +302,12 @@ function listCard(post) {
     `<p class="post-excerpt">${escapeHtml(clip(htmlToText(post.content), 140))}</p></div></a></li>`
 }
 
-// --- 목록 페이지 (/column) ---
-export function renderListPage(template, posts) {
-  const url = SITE_URL + '/column'
-  const head = seoTags({ title: LIST_TITLE, desc: LIST_DESC, url, image: DEFAULT_IMAGE, type: 'website' })
-  let html = setHead(template, LIST_TITLE, LIST_DESC, head)
+// --- 목록 페이지 (/column, /column?cat=분류&page=번호): 그 페이지 글 12개 + 페이지 번호 ---
+export function renderListPage(template, { posts, total, category = null, page = 1 }) {
+  const url = SITE_URL + listUrl(category, page)
+  const title = listTitle(category, page)
+  const head = seoTags({ title, desc: LIST_DESC, url, image: DEFAULT_IMAGE, type: 'website' })
+  let html = setHead(template, title, LIST_DESC, head)
   html = boardMode(html)
   html = swap(html, '<div class="board-loading" id="listLoading">', '<div class="board-loading" id="listLoading" style="display:none">')
   if (posts.length) {
@@ -256,6 +315,11 @@ export function renderListPage(template, posts) {
       `<ul class="post-list" id="postList" style="display:grid">${posts.map(listCard).join('')}</ul>`)
   } else {
     html = swap(html, '<div class="board-empty" id="listEmpty" style="display:none">', '<div class="board-empty" id="listEmpty">')
+  }
+  const pager = pagerHtml(total, page, category)
+  if (pager) {
+    html = swap(html, '<nav class="pager" id="pager" aria-label="목록 페이지" hidden></nav>',
+      `<nav class="pager" id="pager" aria-label="목록 페이지">${pager}</nav>`)
   }
   return html
 }
