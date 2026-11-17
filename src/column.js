@@ -5,12 +5,13 @@
 export const SITE_URL = 'https://myhoteltax.com'
 export const BRAND = '명륜세무회계'
 const DEFAULT_IMAGE = SITE_URL + '/assets/logo.png'
-const LIST_DESC = '호텔·숙박업 사장님을 위한 세무 소식과 절세 정보를 전해드립니다. 창업·사업자등록, 부가가치세, 인건비·노무, 정부지원금, 세법개정 소식까지.'
+const LIST_DESC = '호텔·숙박업 사장님을 위한 세무 소식과 절세 정보를 전해드립니다. 창업·사업자등록, 부가세·종합소득세, 인건비·노무, 정부지원금, 세법개정 소식까지.'
 
 // 카테고리 (public/index.html 의 CATEGORIES 와 같게 유지): 이름 → 주소용 영문, 카드 표시용 영문·아이콘
+// label: 화면에 보이는 이름 (없으면 name). name 은 DB 저장값, slug 는 글 주소라 바꾸지 않음
 export const CATEGORIES = [
   { name: '창업·사업자등록', slug: 'startup', en: 'STARTUP', icon: 'fa-store' },
-  { name: '부가가치세', slug: 'vat', en: 'VAT', icon: 'fa-receipt' },
+  { name: '부가가치세', label: '부가세/종합소득세', slug: 'vat', en: 'VAT · INCOME TAX', icon: 'fa-receipt' },
   { name: '인건비·노무', slug: 'labor', en: 'LABOR', icon: 'fa-users' },
   { name: '정부지원금·정책자금', slug: 'subsidy', en: 'SUBSIDY', icon: 'fa-hand-holding-dollar' },
   { name: '세법개정·시사', slug: 'tax-news', en: 'TAX NEWS', icon: 'fa-newspaper' }
@@ -18,6 +19,7 @@ export const CATEGORIES = [
 const catInfo = (name) =>
   CATEGORIES.find(c => c.name === name) || { name: name || '세무 정보', slug: 'general', en: 'TAX INSIGHT', icon: 'fa-file-lines' }
 export const categorySlug = (name) => catInfo(name).slug
+const catLabel = (name) => { const c = catInfo(name); return c.label || c.name }   // 화면에 보이는 카테고리 이름
 export const categoryBySlug = (slug) => CATEGORIES.find(c => c.slug === slug) || null
 
 // 제목 → 주소용 글자 (한글·영문·숫자만 남기고 나머지는 '-')
@@ -99,7 +101,7 @@ export function listUrl(category, page) {
   return '/column' + (q.length ? '?' + q.join('&') : '')
 }
 const listTitle = (category, page) =>
-  `${category ? category + ' · ' : ''}세무 정보${page > 1 ? ` ${page}페이지` : ''} | ${BRAND}`
+  `${category ? catLabel(category) + ' · ' : ''}세무 정보${page > 1 ? ` ${page}페이지` : ''} | ${BRAND}`
 // 보여 줄 페이지 번호: 7쪽까지는 모두, 넘으면 1 … 앞뒤 … 끝 (빠진 번호가 하나뿐이면 … 대신 그 번호)
 function pagerItems(cur, last) {
   if (last <= 7) return Array.from({ length: last }, (_, i) => i + 1)
@@ -264,11 +266,11 @@ export function renderPostPage(template, post) {
     author: { '@type': 'Organization', name: BRAND, url: SITE_URL },
     publisher: { '@type': 'Organization', name: BRAND, logo: { '@type': 'ImageObject', url: DEFAULT_IMAGE } },
     mainEntityOfPage: { '@type': 'WebPage', '@id': url },
-    articleSection: post.category || '세무 정보',
+    articleSection: post.category ? catLabel(post.category) : '세무 정보',
     inLanguage: 'ko-KR'
   }
   const pageTitle = `${seo.title} | ${BRAND}`
-  const head = seoTags({ title: pageTitle, desc, url, image, type: 'article', published, section: post.category }) +
+  const head = seoTags({ title: pageTitle, desc, url, image, type: 'article', published, section: post.category ? catLabel(post.category) : '' }) +
     `\n  <script type="application/ld+json">${scriptJson(article)}</script>` +
     `\n  <script>window.__SSR__ = ${scriptJson({ type: 'post', post })};</script>`
 
@@ -280,7 +282,7 @@ export function renderPostPage(template, post) {
   html = swap(html, '<div id="boardDetail" style="display:none">', '<div id="boardDetail">')
   html = swap(html, '<h1 id="detailTitle"></h1>', `<h1 id="detailTitle">${escapeHtml(title)}</h1>`)
   html = swap(html, '<div class="post-meta" id="detailMeta"></div>',
-    `<div class="post-meta" id="detailMeta">${post.category ? `<span class="cat-badge">${escapeHtml(post.category)}</span>` : ''}` +
+    `<div class="post-meta" id="detailMeta">${post.category ? `<span class="cat-badge">${escapeHtml(catLabel(post.category))}</span>` : ''}` +
     `<i class="far fa-calendar"></i> <time datetime="${published}">${fmtDate(post.created_at)}</time></div>`)
   html = swap(html, '<div class="post-body" id="detailBody"></div>',
     `<div class="post-body ql-editor" id="detailBody">${prepareContent(post.content, title)}</div>`)
@@ -294,9 +296,9 @@ function listCard(post) {
   const thumb = img
     ? `<div class="post-thumb"><img src="${escapeHtml(img)}" alt="${escapeHtml(post.title)}" loading="lazy" /></div>`
     : `<div class="post-thumb is-fallback"><span class="thumb-icon"><i class="fas ${cat.icon}" aria-hidden="true"></i></span>` +
-      `<span class="thumb-name">${escapeHtml(cat.name)}</span><span class="thumb-en">${escapeHtml(cat.en)}</span></div>`
+      `<span class="thumb-name">${escapeHtml(cat.label || cat.name)}</span><span class="thumb-en">${escapeHtml(cat.en)}</span></div>`
   return `<li class="post-card"><a class="post-card-link" href="${escapeHtml(postPath(post))}">${thumb}` +
-    `<div class="post-card-body">${post.category ? `<span class="cat-badge">${escapeHtml(post.category)}</span>` : ''}` +
+    `<div class="post-card-body">${post.category ? `<span class="cat-badge">${escapeHtml(catLabel(post.category))}</span>` : ''}` +
     `<h3>${escapeHtml(post.title)}</h3>` +
     `<div class="post-meta"><i class="far fa-calendar"></i> ${fmtDate(post.created_at)}</div>` +
     `<p class="post-excerpt">${escapeHtml(clip(htmlToText(post.content), 140))}</p></div></a></li>`

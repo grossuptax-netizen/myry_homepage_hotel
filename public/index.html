@@ -1909,17 +1909,19 @@
       const FONT_FAMILIES = [false, 'nanumgothic', 'nanummyeongjo', 'nanumpen'];
 
       // 카테고리 목록 (필터 버튼·글쓰기 드롭다운 공통, posts.category 에 이 이름 그대로 저장)
-      // name: 화면 표시·DB 저장값 / slug: 글 주소용 영문 / en: 기본 카드 영문 표기 / icon: Font Awesome 아이콘
+      // name: DB 저장값(화면 표시도 이것, label 이 있으면 label) / slug: 글 주소용 영문 / en: 기본 카드 영문 표기 / icon: Font Awesome 아이콘
+      // 화면 이름만 바꿀 때는 label 을 씀 (name 을 바꾸면 이미 저장된 글을 모두 고쳐야 하고, slug 를 바꾸면 글 주소가 바뀜)
       // (서버 src/column.js 의 CATEGORIES 와 같게 유지)
       const CATEGORIES = [
         { name: '창업·사업자등록',    slug: 'startup',  en: 'STARTUP',  icon: 'fa-store' },
-        { name: '부가가치세',         slug: 'vat',      en: 'VAT',      icon: 'fa-receipt' },
+        { name: '부가가치세',         label: '부가세/종합소득세', slug: 'vat', en: 'VAT · INCOME TAX', icon: 'fa-receipt' },
         { name: '인건비·노무',        slug: 'labor',    en: 'LABOR',    icon: 'fa-users' },
         { name: '정부지원금·정책자금', slug: 'subsidy',  en: 'SUBSIDY',  icon: 'fa-hand-holding-dollar' },
         { name: '세법개정·시사',      slug: 'tax-news', en: 'TAX NEWS', icon: 'fa-newspaper' }
       ];
       const catInfo = (name) =>
         CATEGORIES.find(c => c.name === name) || { name: name || '세무 정보', slug: 'general', en: 'TAX INSIGHT', icon: 'fa-file-lines' };
+      const catLabel = (name) => { const c = catInfo(name); return c.label || c.name; };   // 화면에 보이는 카테고리 이름
 
       // --- 글 주소: /column/{분류}/{번호}-{제목} (서버 src/column.js 의 slugify·postPath 와 같게 유지) ---
       function slugify(title) {
@@ -1949,7 +1951,7 @@
         return '/column' + (s ? '?' + s : '');
       }
       const listTitle = (category = currentCategory, page = currentPage) =>
-        `${category ? category + ' · ' : ''}세무 정보${page > 1 ? ` ${page}페이지` : ''} | 명륜세무회계`;
+        `${category ? catLabel(category) + ' · ' : ''}세무 정보${page > 1 ? ` ${page}페이지` : ''} | 명륜세무회계`;
       // 주소의 ?cat=·?page= 읽기 (모르는 분류·잘못된 번호는 전체·1페이지)
       function readListState() {
         const q = new URLSearchParams(location.search);
@@ -3082,7 +3084,7 @@
       // --- 게시판 모드 진입/이탈 ---
       const HOME_TITLE = '명륜세무회계 | 호텔·숙박업 전문 세무사 사무실';
       const HOME_DESC = '명륜세무회계 - 호텔, 모텔, 펜션 등 숙박업 전문 세무 기장, 종합소득세·부가가치세 신고, 절세 컨설팅 전문 세무사 사무실';
-      const LIST_DESC = '호텔·숙박업 사장님을 위한 세무 소식과 절세 정보를 전해드립니다. 창업·사업자등록, 부가가치세, 인건비·노무, 정부지원금, 세법개정 소식까지.';
+      const LIST_DESC = '호텔·숙박업 사장님을 위한 세무 소식과 절세 정보를 전해드립니다. 창업·사업자등록, 부가세·종합소득세, 인건비·노무, 정부지원금, 세법개정 소식까지.';
       function enterBoard() {
         document.body.classList.add('board-mode');
         window.scrollTo(0, 0);
@@ -3368,12 +3370,12 @@
 
       // --- 카테고리 필터 버튼 ---
       function buildCatFilter() {
-        [{ name: null, icon: 'fa-table-cells-large' }, ...CATEGORIES].forEach(({ name, icon }) => {
+        [{ name: null, icon: 'fa-table-cells-large' }, ...CATEGORIES].forEach(({ name, label, icon }) => {
           const b = document.createElement('button');
           b.type = 'button';
           b.className = 'cat-btn';
           b.dataset.cat = name || '';
-          b.innerHTML = `<i class="fas ${icon}" aria-hidden="true"></i>${escapeHtml(name || '전체보기')}<span class="cat-count"></span>`;
+          b.innerHTML = `<i class="fas ${icon}" aria-hidden="true"></i>${escapeHtml(label || name || '전체보기')}<span class="cat-count"></span>`;
           b.addEventListener('click', () => {
             currentCategory = name;
             currentPage = 1;
@@ -3460,7 +3462,7 @@
           pagerEl.hidden = true;
           listEmpty.style.display = 'block';
           listEmpty.innerHTML = '<i class="far fa-folder-open"></i>' + (currentCategory
-            ? `‘${escapeHtml(currentCategory)}’ 카테고리에 등록된 글이 아직 없습니다.`
+            ? `‘${escapeHtml(catLabel(currentCategory))}’ 카테고리에 등록된 글이 아직 없습니다.`
             : '아직 등록된 세무 정보가 없습니다.');
           return;
         }
@@ -3522,7 +3524,7 @@
         const excerpt = htmlToText(post.content);
         const isDraft = post.status === 'draft';
         const draftBadge = (isAdmin() && isDraft) ? '<span class="draft-badge"><i class="fas fa-box-archive"></i> 임시저장</span>' : '';
-        const catBadge = post.category ? `<span class="cat-badge">${escapeHtml(post.category)}</span>` : '';
+        const catBadge = post.category ? `<span class="cat-badge">${escapeHtml(catLabel(post.category))}</span>` : '';
         // SEO 형식 정리 여부 (운영자만, seo_formatted 칸이 없으면 표시 안 함)
         const seoBadge = !isAdmin() || typeof post.seo_formatted !== 'boolean' ? ''
           : post.seo_formatted ? '<span class="card-seo is-done"><i class="fas fa-circle-check" aria-hidden="true"></i> SEO 완료</span>'
@@ -3553,7 +3555,7 @@
         thumbEl.classList.add('is-fallback');
         thumbEl.innerHTML = `
           <span class="thumb-icon"><i class="fas ${c.icon}" aria-hidden="true"></i></span>
-          <span class="thumb-name">${escapeHtml(c.name)}</span>
+          <span class="thumb-name">${escapeHtml(c.label || c.name)}</span>
           <span class="thumb-en">${escapeHtml(c.en)}</span>`;
       }
 
@@ -3563,7 +3565,7 @@
         const isDraft = post.status === 'draft';
         detailTitle.innerHTML = escapeHtml(post.title || '') +
           ((isAdmin() && isDraft) ? ' <span class="draft-badge"><i class="fas fa-box-archive"></i> 임시저장</span>' : '');
-        detailMeta.innerHTML = (post.category ? `<span class="cat-badge">${escapeHtml(post.category)}</span>` : '') +
+        detailMeta.innerHTML = (post.category ? `<span class="cat-badge">${escapeHtml(catLabel(post.category))}</span>` : '') +
           `<i class="far fa-calendar"></i> ${fmtDate(post.created_at)}`;
         // Quill 로 작성한 HTML 을 그대로 렌더링 (ql-editor 클래스로 서식 보존)
         detailBody.className = 'post-body ql-editor';
@@ -4394,7 +4396,7 @@
 
       // --- 카테고리 필터 버튼 · 글쓰기 드롭다운 채우기 ---
       buildCatFilter();
-      CATEGORIES.forEach(c => fCategory.add(new Option(c.name, c.name)));
+      CATEGORIES.forEach(c => fCategory.add(new Option(c.label || c.name, c.name)));
 
       // --- 이벤트 바인딩 ---
       btnGoogleLogin.addEventListener('click', doGoogleLogin);
