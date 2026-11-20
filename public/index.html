@@ -187,6 +187,9 @@ gtag('config', 'AW-17927385270');
       background: none; border: none; padding: 0; font: inherit; color: inherit; cursor: pointer;
     }
     .footer-admin-link:hover { color: rgba(255,255,255,0.85); text-decoration: underline; }
+    /* 개인정보처리방침 링크: 법에 따라 다른 안내와 구분되게 굵고 금색으로 */
+    .footer-privacy-link { color: var(--gold-light); font-weight: 700; text-decoration: none; }
+    .footer-privacy-link:hover { text-decoration: underline; }
 
     /* ===== 모바일 메뉴 ===== */
     .mobile-menu {
@@ -416,6 +419,7 @@ gtag('config', 'AW-17927385270');
     .form-group textarea { resize: vertical; min-height: 100px; }
     .contact-form .btn-gold { width: 100%; justify-content: center; margin-top: 8px; }
     .form-note { font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 14px; font-weight: 300; }
+    .form-note a { color: var(--plum); font-weight: 500; text-decoration: underline; }
     .form-success { text-align: center; padding: 30px 10px; }
     .form-success i { font-size: 3rem; color: var(--gold-dark); margin-bottom: 16px; }
     .form-success p { font-size: 1.1rem; font-weight: 500; color: var(--plum); line-height: 1.6; }
@@ -1440,7 +1444,7 @@ gtag('config', 'AW-17927385270');
               <textarea id="message" name="문의내용" placeholder="업종(호텔/모텔/펜션 등)과 문의하실 내용을 적어주세요."></textarea>
             </div>
             <button type="submit" class="btn btn-gold" id="consultSubmit"><i class="fas fa-paper-plane"></i> 무료 상담 신청하기</button>
-            <p class="form-note">* 입력하신 정보는 상담 목적 외에 사용되지 않습니다.</p>
+            <p class="form-note">* 입력하신 정보는 상담 목적 외에 사용되지 않습니다. <a href="/privacy" target="_blank" rel="noopener">개인정보처리방침</a></p>
           </form>
           <div id="formSuccess" class="form-success" style="display:none;">
             <i class="fas fa-circle-check"></i>
@@ -1472,6 +1476,7 @@ gtag('config', 'AW-17927385270');
       </div>
       <div class="footer-bottom">
         © 2026 명륜세무회계 (Myeongryun Tax &amp; Accounting). All rights reserved.
+        <span aria-hidden="true">&nbsp;·&nbsp;</span><a href="/privacy" class="footer-privacy-link">개인정보처리방침</a>
         <span aria-hidden="true">&nbsp;·&nbsp;</span><button type="button" class="footer-admin-link" id="footerAdminLink">관리자</button>
       </div>
     </div>

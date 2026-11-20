@@ -2,6 +2,8 @@ import { Hono } from 'hono'
 import type { Context } from 'hono'
 // 빌드 타임에 index.html 을 문자열로 인라인 (Cloudflare Workers 런타임에는 fs 가 없으므로 import 사용)
 import indexHtml from '../public/index.html?raw'
+// 개인정보처리방침 페이지 (/privacy). public 폴더에 두면 Cloudflare 가 /privacy.html → /privacy 로 돌린 뒤 서버 404 가 나므로 여기서 내보냄
+import privacyHtml from './privacy.html?raw'
 // @ts-ignore (일반 JS 모듈)
 import { fetchLinkPreview } from './link-preview.js'
 // @ts-ignore (일반 JS 모듈)
@@ -57,6 +59,9 @@ const NO_CLOUDINARY_KEYS = 'Cloudinary 환경변수(CLOUDINARY_CLOUD_NAME·CLOUD
 app.get('/', (c) => c.html(indexHtml))
 // 브라우저가 자동으로 찾는 /favicon.ico 는 아이콘 파일(/favicon.svg)로 (없으면 서버 오류가 남)
 app.get('/favicon.ico', (c) => c.redirect('/favicon.svg', 301))
+// 개인정보처리방침 (첫 화면 맨 아래·상담 신청 양식에서 연결)
+app.get('/privacy', (c) => c.html(privacyHtml))
+app.get('/privacy/', (c) => c.redirect('/privacy', 301))
 
 // Google Search Console 사이트 소유권 확인 파일 (정확한 경로에서 원문 그대로 반환)
 app.get('/googlef151711fc2c45d18.html', (c) =>
