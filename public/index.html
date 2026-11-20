@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-17927385270"></script>
+<script>
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-MF5G54Z5');
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'AW-17927385270');
+</script>
   <meta charset="UTF-8" />
   <!-- 글 주소(/column/…)에서도 사진·아이콘·메뉴(#…) 링크가 사이트 첫 화면 기준으로 열리도록 -->
   <base href="/" />
@@ -1766,6 +1774,7 @@
     const form = document.getElementById('consultForm');
     const formSuccess = document.getElementById('formSuccess');
     const submitBtn = document.getElementById('consultSubmit');
+    let consultConversionSent = false;   // 구글 애즈 전환은 접수 한 번에 한 번만
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       // 봇 함정 검사: 보이지 않는 필드가 채워졌다면 봇으로 판단.
@@ -1802,6 +1811,13 @@
           form.reset();
           form.style.display = 'none';
           formSuccess.style.display = 'block';
+          // 구글 애즈 전환: 접수 성공이 확인된 뒤에만 (빈칸·실패·봇 함정은 위에서 이미 빠짐)
+          if (!consultConversionSent) {
+            consultConversionSent = true;
+            if (typeof window.gtag === 'function') {
+              window.gtag('event', 'conversion', { send_to: 'AW-17927385270/MrFmCIa8-LsdELbhuORC' });
+            }
+          }
         } else {
           alert('전송에 실패했습니다. 잠시 후 다시 시도하시거나 전화로 문의해 주세요.');
           submitBtn.disabled = false;
