@@ -1822,6 +1822,16 @@ gtag('config', 'AW-17927385270');
             if (typeof window.gtag === 'function') {
               window.gtag('event', 'conversion', { send_to: 'AW-17927385270/MrFmCIa8-LsdELbhuORC' });
             }
+            // 네이버 광고 전환: 같은 조건에서 한 번. 오류가 나도 접수 완료 안내·구글 전환에는 영향 없게
+            try {
+              if (window.wcs) {
+                if (!window.wcs_add) window.wcs_add = {};
+                window.wcs_add["wa"] = "s_13433d773df9";
+                var _conv = {};
+                _conv.type = 'lead';
+                window.wcs.trans(_conv);
+              }
+            } catch (naverErr) {}
           }
         } else {
           alert('전송에 실패했습니다. 잠시 후 다시 시도하시거나 전화로 문의해 주세요.');
@@ -4720,5 +4730,16 @@ gtag('config', 'AW-17927385270');
       initAuthAndRoute();
     })();
   </script>
+<!-- NAVER 공통 SCRIPT -->
+<script type="text/javascript" src="//wcs.naver.net/wcslog.js"></script>
+<script type="text/javascript">
+if (!wcs_add) var wcs_add={};
+wcs_add["wa"] = "s_13433d773df9";
+if (!_nasa) var _nasa={};
+if(window.wcs){
+wcs.inflow("myhoteltax.com");
+wcs_do();
+}
+</script>
 </body>
 </html>
